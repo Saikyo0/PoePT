@@ -32,7 +32,7 @@ bot.login("your_email@example.com")
 response = bot.ask(bot="sage", prompt="hello")
 print(response)
 ```
-- When you're donewith your session, be sure to close the connection:
+- When you're done with your session, be sure to close the connection:
 
 ```python
 bot.close()
