@@ -1,0 +1,3 @@
+pickle
+selenium
+webdriver_manager
