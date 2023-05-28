@@ -12,7 +12,7 @@ pip install poept
 ```
 
 ### Requirements:
-- a POE account (make one at poe.com if you dont have 
+- a POE account (make one at poe.com) 
 - Chrome
 
 ### Usage
