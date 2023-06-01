@@ -68,9 +68,9 @@ status = bot.status()
 
 ```python
 print("Listening...") 
-question = poept.livevoice(timeout=2)
+question = bot.livevoice(timeout=2)
 print("Recording complete.")
-result = poept.ask(bot="sage", prompt=question)
+result = bot.ask(bot="sage", prompt=question)
 print("\nresponse:", result)
 ```
   
@@ -78,8 +78,8 @@ print("\nresponse:", result)
 
 - File voice Input
 ```python
-question = poept.filevoice("audio.wav")
-result = poept.ask(bot="sage", prompt=question)
+question = bot.filevoice("audio.wav")
+result = bot.ask(bot="sage", prompt=question)
 print("\nresponse:", result)
 ```
   
@@ -95,20 +95,20 @@ status = bot.status()
 
 - configure classes and keys
 ```python
-    bot.config(
-        website="https://poe.com/",
-        clear_key="ChatMessageInputFooter_chatBreakButton__hqJ3v", 
-        code_area="input.VerificationCodeInput_verificationCodeInput__YD3KV", 
-        talk_key="//button[contains(., 'Talk')]", 
-        email_area="input[type='email']", 
-        email_key="//button[contains(., 'Email')]", 
-        go_key="//button[contains(., 'Go')]", 
-        log_key="//button[contains(., 'Log')]", 
-        text_area="GrowingTextArea_textArea__eadlu", 
-        send_key="button.ChatMessageSendButton_sendButton__OMyK1", 
-        chat_element="ChatMessagesView_infiniteScroll__K_SeP", 
-        msg_element="ChatMessage_messageRow__7yIr2"
-    )
+bot.config(
+    website="https://poe.com/",
+    clear_key="ChatMessageInputFooter_chatBreakButton__hqJ3v", 
+    code_area="input.VerificationCodeInput_verificationCodeInput__YD3KV", 
+    talk_key="//button[contains(., 'Talk')]", 
+    email_area="input[type='email']", 
+    email_key="//button[contains(., 'Email')]", 
+    go_key="//button[contains(., 'Go')]", 
+    log_key="//button[contains(., 'Log')]", 
+    text_area="GrowingTextArea_textArea__eadlu", 
+    send_key="button.ChatMessageSendButton_sendButton__OMyK1", 
+    chat_element="ChatMessagesView_infiniteScroll__K_SeP", 
+    msg_element="ChatMessage_messageRow__7yIr2"
+)
 ```
 
 | KEY           | Value                                                     |
