@@ -3,19 +3,26 @@ PoePT is a Selenium Python package that provides a simple interface for interact
 Giving you access to multiple chatbots like:
 - ChatGPT-3
 - ChatGPT-4
-- Claude-Instant 
+- Claude-Instant  
+ <br />
 
-### Installation
+
+## Installation
 You can install PoePT using pip:
 ```
 pip install poept
-```
+```  
+<br />
 
-### Requirements:
+
+## Requirements:
 - a POE account (make one at poe.com) 
 - Chrome
 
-### Usage
+  
+<br />
+
+## Usage
 Here's an example of how to use PoePT to log in to the Poe chatbot and ask a question:
 
 - create connection with bot
@@ -37,6 +44,13 @@ print(response)
 ```python
 bot.close()
 ```
+
+
+  
+<br />
+
+## Extra
+
 - status of client
 
 ```python
@@ -47,9 +61,74 @@ status = bot.status()
 | false  | the bot isn't connected and cant answer  |
 | ready  | the bot is connected and ready to answer |
 | wait   | the bot is generating an answer          |
+  
+<br />
 
-### Plans
-Adding config option to make elements selectable for filtering, so that the package avoids death making new features like voice input work
+- Live voice Input
 
-### Contributing 
-If you encounter a bug or would like to suggest a new feature, please open an issue on the GitHub repository. Pull requests are also welcome!
+```python
+print("Listening...") 
+question = poept.livevoice(timeout=2)
+print("Recording complete.")
+result = poept.ask(bot="sage", prompt=question)
+print("\nresponse:", result)
+```
+  
+<br />
+
+- File voice Input
+```python
+question = poept.filevoice("audio.wav")
+result = poept.ask(bot="sage", prompt=question)
+print("\nresponse:", result)
+```
+  
+<br />
+
+- clear cookies
+
+```python
+status = bot.status()
+```
+  
+<br />
+
+- configure classes and keys
+```python
+    bot.config(
+        website="https://poe.com/",
+        clear_key="ChatMessageInputFooter_chatBreakButton__hqJ3v", 
+        code_area="input.VerificationCodeInput_verificationCodeInput__YD3KV", 
+        talk_key="//button[contains(., 'Talk')]", 
+        email_area="input[type='email']", 
+        email_key="//button[contains(., 'Email')]", 
+        go_key="//button[contains(., 'Go')]", 
+        log_key="//button[contains(., 'Log')]", 
+        text_area="GrowingTextArea_textArea__eadlu", 
+        send_key="button.ChatMessageSendButton_sendButton__OMyK1", 
+        chat_element="ChatMessagesView_infiniteScroll__K_SeP", 
+        msg_element="ChatMessage_messageRow__7yIr2"
+    )
+```
+
+| KEY           | Value                                                     |
+|---------------|-----------------------------------------------------------|
+| website       | "https://poe.com/"                                        |
+| clear_key     | "ChatMessageInputFooter_chatBreakButton__hqJ3v"           |
+| code_area     | "input.VerificationCodeInput_verificationCodeInput__YD3KV"|
+| talk_key      | "//button[contains(., 'Talk')]"                           |
+| email_area    | "input[type='email']"                                     |
+| email_key     | "//button[contains(., 'Email')]"                          |
+| go_key        | "//button[contains(., 'Go')]"                             |
+| log_key       | "//button[contains(., 'Log')]"                            |
+| text_area     | "GrowingTextArea_textArea__eadlu"                         |
+| send_key      | "button.ChatMessageSendButton_sendButton__OMyK1"          |
+| chat_element  | "ChatMessagesView_infiniteScroll__K_SeP"                  |
+| msg_element   | "ChatMessage_messageRow__7yIr2"                           |
+  
+<br />
+
+## Contributing 
+If you encounter a bug or would like to suggest a new feature, please open an issue on the GitHub repository. Pull requests are also welcome! 
+
+<a href=https://github.com/saikyo0>saikyo0</a>
