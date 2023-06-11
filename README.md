@@ -70,15 +70,17 @@ status = bot.stat
 
 ```python
 from poept import PoePT
+import threading
 
 bot = PoePT()
-bot.login("mohammedaminsultan01@gmail.com") 
-result = bot.ask(bot="sage", prompt="hello")
+bot.login("<email>@gmail.com") 
+def ask_bot():
+    bot.ask("Sage", "Write A Lorem Ipsum")
 
-while(bot.stat == "wait"):
-    print(bot.response)
-
-#run the while loop by threading
+threading.Thread(target=ask_bot).start()
+while bot.stat == "wait":
+    print(bot.stat)
+    print('\r' + bot.response, end='')
 ```
 
 - Live voice Input
