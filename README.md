@@ -33,11 +33,11 @@ from poept import PoePT
 bot = PoePT()
 bot.login("your_email@example.com") 
 ```
-- Once you're logged in, you can ask a question to the chatbot of your choice and retrieve the response:
+- Once you're logged in, you can ask a question to the chatbot of your choice and retrieve the result:
 
 ```python
-response = bot.ask(bot="sage", prompt="hello")
-print(response)
+result = bot.ask(bot="sage", prompt="hello")
+print(result)
 ```
 - When you're done with your session, be sure to close the connection:
 
@@ -45,8 +45,10 @@ print(response)
 bot.close()
 ```
 
+<br />
 
-  
+<h2> Examples: <a href="https://github.com/Saikyo0/PoePT/blob/main/poept/examples"> link </a></h2>
+
 <br />
 
 ## Extra
@@ -54,7 +56,7 @@ bot.close()
 - status of client
 
 ```python
-status = bot.status()
+status = bot.stat
 ```
 | Status | Meanings                                 |
 |--------|------------------------------------------|
@@ -63,6 +65,21 @@ status = bot.status()
 | wait   | the bot is generating an answer          |
   
 <br />
+
+- Get Live Updating Result
+
+```python
+from poept import PoePT
+
+bot = PoePT()
+bot.login("mohammedaminsultan01@gmail.com") 
+result = bot.ask(bot="sage", prompt="hello")
+
+while(bot.stat == "wait"):
+    print(bot.response)
+
+#run the while loop by threading
+```
 
 - Live voice Input
 
@@ -97,38 +114,37 @@ status = bot.status()
 ```python
 bot.config(
     website="https://poe.com/",
-    clear_key="ChatMessageInputFooter_chatBreakButton__hqJ3v", 
-    code_area="input.VerificationCodeInput_verificationCodeInput__YD3KV", 
-    talk_key="//button[contains(., 'Talk')]", 
-    email_area="input[type='email']", 
-    email_key="//button[contains(., 'Email')]", 
-    go_key="//button[contains(., 'Go')]", 
-    log_key="//button[contains(., 'Log')]", 
-    text_area="GrowingTextArea_textArea__eadlu", 
-    send_key="button.ChatMessageSendButton_sendButton__OMyK1", 
-    chat_element="ChatMessagesView_infiniteScroll__K_SeP", 
+    email_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'email')]",
+    email_area="input[class*=EmailInput]", 
+    code_area="input[class*=CodeInput",
+    go_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'go')]",
+    log_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'log')]",
+    talk_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'talk')]",
+    send_key="button[class*=SendButton]",
+    text_area="textarea[class*=TextArea]", 
+    clear_key="button[class*=ChatBreak]",
     msg_element="ChatMessage_messageRow__7yIr2"
 )
 ```
+Here's the updated table:
 
 | KEY           | Value                                                     |
 |---------------|-----------------------------------------------------------|
 | website       | "https://poe.com/"                                        |
-| clear_key     | "ChatMessageInputFooter_chatBreakButton__hqJ3v"           |
-| code_area     | "input.VerificationCodeInput_verificationCodeInput__YD3KV"|
-| talk_key      | "//button[contains(., 'Talk')]"                           |
-| email_area    | "input[type='email']"                                     |
-| email_key     | "//button[contains(., 'Email')]"                          |
-| go_key        | "//button[contains(., 'Go')]"                             |
-| log_key       | "//button[contains(., 'Log')]"                            |
-| text_area     | "GrowingTextArea_textArea__eadlu"                         |
-| send_key      | "button.ChatMessageSendButton_sendButton__OMyK1"          |
-| chat_element  | "ChatMessagesView_infiniteScroll__K_SeP"                  |
-| msg_element   | "ChatMessage_messageRow__7yIr2"                           |
-  
+| clear_key     | "button[class*=ChatBreak]"                                |
+| code_area     | "input[class*=VerificationCodeInput]"                     |
+| talk_key      | "//button[contains(translate(., 'a', 'A'), 'talk')]"       |
+| email_area    | "input[class*=EmailInput]"                                |
+| email_key     | "//button[contains(translate(., 'a', 'A'), 'email')]"      |
+| go_key        | "//button[contains(translate(., 'a', 'A'), 'go')]"         |
+| log_key       | "//button[contains(translate(., 'a', 'A'), 'log')]"        |
+| text_area     | "textarea[class*=TextArea]"                               |
+| send_key      | "button[class*=SendButton]"                               |
+| chat_element  | "div[class*=ChatMessagesView_infiniteScroll]"             |
+| msg_element   | "div[class*=ChatMessage_messageRow]"                       |
 <br />
 
 ## Contributing 
-If you encounter a bug or would like to suggest a new feature, please open an issue on the GitHub repository. Pull requests are also welcome! 
+If you encounter a bug open an issue on the GitHub repository. Pull requests are also welcome! 
 
 <a href=https://github.com/saikyo0>saikyo0</a>
