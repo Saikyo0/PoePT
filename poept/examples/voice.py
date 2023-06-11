@@ -1,7 +1,7 @@
 from poept import PoePT
 
 bot = PoePT()
-bot.login("mohammedaminsultan01@gmail.com")
+bot.login("<email>@gmail.com")
 
 # speech from mic
 prompt = bot.livevoice(10)
