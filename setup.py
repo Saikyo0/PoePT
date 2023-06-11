@@ -5,7 +5,7 @@ with open('readme.md', 'r') as f:
 
 setup(
     name='PoePT',
-    version='0.1.3',
+    version='0.2.4',
     description='Python package for interacting with the Quora POE chatbot',
     author='Saikyo0',
     author_email='mamaexus@gmail.com',
