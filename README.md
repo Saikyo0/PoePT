@@ -1,5 +1,5 @@
 # PoePT
-PoePT is a Selenium Python package that provides a simple interface for interacting with the Poe chatbot.
+PoePT is a simple Selenium Python package that provides automation for interacting with the Poe chatbots.
 Giving you access to multiple chatbots like:
 - ChatGPT-3
 - ChatGPT-4
