@@ -13,5 +13,4 @@ def ask_bot():
     bot.ask("Sage", "Write A Lorem Ipsum")
 threading.Thread(target=ask_bot).start()
 while bot.stat == "wait":
-    print(bot.stat)
     print('\r' + bot.response, end='')
