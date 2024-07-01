@@ -10,6 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+default_bot = "Assistant"
 website = "https://poe.com/"
 letters = ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"]
 email_area='input[type="email"]'
@@ -36,19 +37,19 @@ class PoePT:
         self.stat = "false"
 
     def getMessage(self):
-        # for i in range(10):
-        #     try:
-        #         self.driver.find_element(By.CSS_SELECTOR, stop_button_selector)
-        #         time.sleep(1)
-        #         continue
-        #     except:
-        #         break
+        time.sleep(1)
+        for i in range(10):
+            try:
+                self.driver.find_element(By.CSS_SELECTOR, stop_button_selector)
+                logger.debug("Message is still generating...")
+                time.sleep(1)
+                continue
+            except:
+                break
 
         for i in range(10):
             try:
                 elements = self.driver.find_elements(By.CSS_SELECTOR, msg_element)
-                for element in elements:
-                    print(element.text)
                 return elements[-1].text
             except Exception as e:
                 logger.warning(f"failed to find {msg_element}: {e}")
@@ -86,9 +87,20 @@ class PoePT:
 
             pickle.dump(self.driver.get_cookies(), open("cookies.pkl", "wb"))
 
-    def ask(self, bot="sage", prompt="hello"):
+    def start_dialog(self, prompt="hello", bot=default_bot):
         self.stat = "wait"
         self.driver.execute_script(f"window.location.href = '{website}{bot}/';")
+        enter(self.driver, By.CSS_SELECTOR, text_area, prompt)
+        click(self.driver, By.CSS_SELECTOR, send_key)
+        text = self.getMessage()
+        self.stat = "ready"
+        return text
+    
+    def ask(self, prompt="hello", bot=default_bot):
+        if not str(self.driver.current_url).endswith("/" + bot):
+            self.driver.execute_script(f"window.location.href = '{website}{bot}/';")
+        
+        self.stat = "wait"
         enter(self.driver, By.CSS_SELECTOR, text_area, prompt)
         click(self.driver, By.CSS_SELECTOR, send_key)
         text = self.getMessage()
