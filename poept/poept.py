@@ -37,20 +37,17 @@ class PoePT:
         self.stat = "false"
 
     def getMessage(self):
-        time.sleep(1)
         for i in range(10):
             try:
-                self.driver.find_element(By.CSS_SELECTOR, stop_button_selector)
-                logger.debug("Message is still generating...")
-                time.sleep(1)
-                continue
-            except:
-                break
-
-        for i in range(10):
-            try:
-                elements = self.driver.find_elements(By.CSS_SELECTOR, msg_element)
-                return elements[-1].text
+                elements = self.driver.find_elements(By.CSS_SELECTOR, "div[class*=ChatMessage]")
+                element = elements[-1]
+                next_element = element.find_element(By.XPATH, "following-sibling::*[1]")
+                chat_message_action_bar = self.driver.find_element(By.CSS_SELECTOR, "selection[class*='ChatMessageActionBar']")
+                if next_element == chat_message_action_bar:
+                    return elements[-1].text
+                else:
+                    logger.info("waiting for the complete response...")
+                    time.sleep(1)
             except Exception as e:
                 logger.warning(f"failed to find {msg_element}: {e}")
                 time.sleep(1 * i)

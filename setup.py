@@ -3,19 +3,18 @@ from setuptools import setup
 with open('readme.md', 'r') as f:
     readme = f.read()
 
+with open('requirements.txt', 'r') as f:
+    requirements = f.read().split()
+
 setup(
     name='PoePT',
-    version='0.2.4',
+    version='0.3.0',
     description='Python package for interacting with the Quora POE chatbot',
     author='Saikyo0',
     author_email='mamaexus@gmail.com',
     url='https://github.com/saikyo0/PoePT',
     packages=['poept'],
-    install_requires=[
-        'selenium',
-        'webdriver_manager',
-        'SpeechRecognition'
-    ],
+    install_requires=requirements,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
