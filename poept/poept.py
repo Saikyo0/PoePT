@@ -4,7 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-from .tools import find, click, enter, speech, record
+from .tools import click, enter, speech, record
 import time
 import logging
 
