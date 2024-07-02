@@ -1,4 +1,3 @@
-(i lost my pypi account...oopsie)
 # PoePT
 PoePT is a simple Selenium Python package that provides automation for interacting with the Poe chatbots.
 Giving you access to multiple chatbots like:
