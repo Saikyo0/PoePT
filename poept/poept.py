@@ -83,12 +83,11 @@ class PoePT:
                 elements = self.driver.find_elements(By.CSS_SELECTOR, "div[class*=ChatMessage_chatMessage]")
                 chatMessage_element = elements[-1]
 
-                next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")              
                 # wait 120 seconds for the response generation
                 actionBar_bar = WebDriverWait(self.driver, 120).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, "section[class*='ChatMessageActionBar_actionBar']"))
                 )
-
+                next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")              
                 if next_element == actionBar_bar:
                     return chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]").text
                 else:
