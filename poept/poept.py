@@ -77,11 +77,13 @@ class PoePT:
         for i in range(10):
             try:
                 elements = self.driver.find_elements(By.CSS_SELECTOR, "div[class*=ChatMessage_chatMessage]")
-                element = elements[-1]
-                next_element = element.find_element(By.XPATH, "following-sibling::*[1]")
-                chat_message_action_bar = self.driver.find_element(By.CSS_SELECTOR, "section[class*='ChatMessageActionBar_actionBar']")
-                if next_element == chat_message_action_bar:
-                    return elements[-1].text
+                chatMessage_element = elements[-1]
+
+                next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")
+                actionBar_bar = self.driver.find_element(By.CSS_SELECTOR, "section[class*='ChatMessageActionBar_actionBar']")
+                
+                if next_element == actionBar_bar:
+                    return chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]").text
                 else:
                     logger.info("waiting for the complete response...")
                     time.sleep(1)
