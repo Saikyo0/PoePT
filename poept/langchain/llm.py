@@ -3,7 +3,7 @@ from langchain.llms.base import LLM
 from typing import Optional, List, Dict, Any
 from langchain_core.pydantic_v1 import Field
 
-from .poept import PoePT 
+from ..poept import PoePT 
 
 # [CustomLLM](https://python.langchain.com/v0.1/docs/modules/model_io/llms/custom_llm/)
 # Inspired by https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/llms/openai.py#L145

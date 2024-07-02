@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from poept import PoeLLM
+from poept.langchain import PoeLLM
 import os
 
 poe_llm = PoeLLM(email=os.environ.get("POE_EMAIL"))
