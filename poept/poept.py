@@ -28,7 +28,7 @@ stop_button_selector="button[class*=ChatStopMessageButton]"
 class PoePT:
     cookies_file_path: str = os.path.expanduser("~/.cache/poept.cookies.json")
 
-    def __init__(self, cookies: list = [], email: Optional[str] = os.environ.get("POE_EMAIL"), headless: bool = True):
+    def __init__(self, cookies: list = [], email: Optional[str] = os.environ.get("POE_EMAIL"), headless: bool = os.environ.get("POE_HEADLESS", "true") == "true"):
         chrome_options = Options()
         if headless:
             chrome_options.add_argument("--headless")   

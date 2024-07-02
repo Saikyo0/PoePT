@@ -1,17 +1,29 @@
-(i lost my pypi account...oopsie)
 # PoePT
 PoePT is a simple Selenium Python package that provides automation for interacting with the Poe chatbots.
 Giving you access to multiple chatbots like:
-- ChatGPT-3
-- ChatGPT-4
-- Claude-Instant  
+- gpt-4o
+- gpt-4
+- Assistant
+- Web-Search
+- Claude-3.5-Sonnet
+- Claude-3-Sonnet
+- Claude-3-Opus
+- [Claude-3-Haiku](https://poe.com/Claude-3-Haiku)
+- Gemini-1.5-Flash-128k
+- Gemini-1.5-Pro
+- Claude-Instant
+- Mistral-Large
+- Mistral-Medium
+- [Gemini-1.5-Flash-1M](https://poe.com/Gemini-1.5-Flash-1M)
+- [Gemini-1.5-Pro-2M](https://poe.com/Gemini-1.5-Pro-2M)
+
  <br />
 
 
 ## Installation
 You can install PoePT using pip:
 ```
-pip install poept
+pip install git+https://github.com/dzianisv/poept
 ```  
 <br />
 
@@ -37,7 +49,7 @@ bot = PoePT(email=os.environ.get("POE_EMAIL"))
 - Once you're logged in, you can ask a question to the chatbot of your choice and retrieve the result:
 
 ```python
-result = bot.ask(model="sage", prompt="hello")
+result = bot.ask(model="gpt-4o", prompt="Who did invent GPT model?")
 print(result)
 ```
 - When you're done with your session, be sure to close the connection:
@@ -51,6 +63,11 @@ bot.close()
 <h2> Examples: <a href="https://github.com/Saikyo0/PoePT/blob/main/poept/examples"> link </a></h2>
 
 <br />
+
+## Env variables
+
+- POE_HEADLESS=true
+- POE_EMAIL=<your email>
 
 ## Extra
 
