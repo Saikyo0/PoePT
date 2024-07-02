@@ -1,4 +1,4 @@
 from .poept import PoePT
 from .langchain import PoeLLM
-import .langchain
+from . import langchain
 __all__ = ['PoePT', 'PoeLLM', 'langchain']
