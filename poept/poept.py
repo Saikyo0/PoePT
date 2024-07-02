@@ -4,9 +4,11 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+from typing import Optional
 from .tools import click, enter, speech, record
 import time
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +26,9 @@ msg_element="div[class*=Message_botMessageBubble]"
 stop_button_selector="button[class*=ChatStopMessageButton]"
 
 class PoePT:
-    def __init__(self):
+    cookies_file_path: str = os.path.expanduser("~/.cache/poept.cookies.json")
+
+    def __init__(self, cookies: list = [], email: Optional[str] = os.environ.get("POE_EMAIL")):
         chrome_options = Options()
         chrome_options.add_argument("--log-level=3")
         chrome_options.add_argument("--disable-infobars")
@@ -36,6 +40,39 @@ class PoePT:
         self.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
         self.stat = "false"
 
+        self.cookies = cookies
+        if len(self.cookies) < 1:
+            self.cookies = self.read_cookies()
+
+
+        if len(self.cookies) < 1:
+            if email is None:
+                raise Exception("no cookies and email are set")
+            else:
+                self.login(email)
+
+        self.apply_cookies()
+
+    def read_cookies(self):
+
+        if os.path.exists(self.cookies_file_path):
+            print(f"loading cookies from {self.cookies_file_path}")
+            with open(self.cookies_file_path, 'rb') as f:
+                return json.load(f)
+
+        return []
+
+    def apply_cookies(self):
+        if len(self.cookies) < 1:
+            return False
+        
+        self.driver.get(website)
+        self.driver.delete_all_cookies()
+        for cookie in self.cookies:
+            self.driver.add_cookie(cookie)
+        self.driver.refresh()
+        return True
+    
     def get_message(self):
         for i in range(10):
             try:
@@ -54,35 +91,25 @@ class PoePT:
         else:
             raise Exception("failed to extract the response message")
     
-    def clearcookies(self):
-        os.remove("cookies.pkl")
-        print("cookies cleared")
-    
     def clearchat(self):
         click(self.driver, By.CSS_SELECTOR, clear_key)
         print("cookies cleared")
 
-    def login(self, email):
-        try:
-            self.driver.get(website)
-            self.driver.delete_all_cookies()
-            cookies = pickle.load(open("cookies.pkl", "rb"))
-            for cookie in cookies:
-                self.driver.add_cookie(cookie)
-            self.driver.refresh()
+    def login(self, email: str):
+        self.driver.get(website)    
+        self.driver.execute_script('window.scrollBy(0, 5);')
+        
+        enter(self.driver, By.CSS_SELECTOR, email_area, email)
+        click(self.driver, By.XPATH, go_key)
+        
+        code = input("Enter code: ")
+        enter(self.driver, By.CSS_SELECTOR, code_area, code)
+        click(self.driver, By.XPATH, log_key)
 
-        except (FileNotFoundError, pickle.UnpicklingError):
-            self.driver.get(website)    
-            self.driver.execute_script('window.scrollBy(0, 5);')
-            
-            enter(self.driver, By.CSS_SELECTOR, email_area, email)
-            click(self.driver, By.XPATH, go_key)
-            
-            code = input("Enter code: ")
-            enter(self.driver, By.CSS_SELECTOR, code_area, code)
-            click(self.driver, By.XPATH, log_key)
-
-            pickle.dump(self.driver.get_cookies(), open("cookies.pkl", "wb"))
+        self.cookies = self.driver.get_cookies()
+        
+        with open(self.cookies_file_path, "wb") as f:
+            json.dump(self.cookies, f)
 
     def start_dialog(self, prompt="hello", bot=default_bot):
         self.stat = "wait"

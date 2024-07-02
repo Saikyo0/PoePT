@@ -13,10 +13,11 @@ _poe = PoePT()
 
 class PoeLLM(LLM):
     model: str = Field(default="Assistant")
-
-    def __init__(self, email: str, model: str = "gpt-4o"):
-        super().__init__(model=model)
-        _poe.login(email)
+    email: Optional[str] = Field(default=None)
+    cookies: Optional[list] = Field(default=[])
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     # Takes in a string and some optional stop words, and returns a string. Used by invoke.
     def _call(self, prompt: str, stop: Optional[List[str]] = None, **kwargs: Any) -> str:

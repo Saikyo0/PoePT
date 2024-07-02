@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 from poept.langchain import PoeLLM
-import os
+import logging
 
-poe_llm = PoeLLM(email=os.environ.get("POE_EMAIL"))
-response = poe_llm("Hello, how are you?")
+logging.basicConfig(level=logging.INFO)
+
+poe_llm = PoeLLM()
+response = poe_llm.invoke("Hello, how are you?")
 print(response)

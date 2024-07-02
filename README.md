@@ -31,13 +31,13 @@ Here's an example of how to use PoePT to log in to the Poe chatbot and ask a que
 ```python
 from poept import PoePT
 
-bot = PoePT()
-bot.login("your_email@example.com") 
+bot = PoePT(email=os.environ.get("POE_EMAIL"))
+ 
 ```
 - Once you're logged in, you can ask a question to the chatbot of your choice and retrieve the result:
 
 ```python
-result = bot.ask(bot="sage", prompt="hello")
+result = bot.ask(model="sage", prompt="hello")
 print(result)
 ```
 - When you're done with your session, be sure to close the connection:
@@ -73,8 +73,7 @@ status = bot.stat
 from poept import PoePT
 import threading
 
-bot = PoePT()
-bot.login("<email>@gmail.com") 
+bot = PoePT(email=os.environ.get("POE_EMAIL"))
 def ask_bot():
     bot.ask("Sage", "Write A Lorem Ipsum")
 

@@ -1,7 +1,6 @@
 from poept import PoePT
 
 bot = PoePT()
-bot.login("<email>@gmail.com")
 
 #asking simple text
 result = bot.ask("MongoT", "Hello!")
