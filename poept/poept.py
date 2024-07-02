@@ -87,11 +87,14 @@ class PoePT:
 
         next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")              
         if next_element == actionBar_bar:
-            return chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]").text
-        else:
-            logger.info("waiting for the complete response...")
-            time.sleep(1)
+            text = chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]").text
+            lines = []
+            # filter out service text
+            lines = filter(lambda x: x != 'Copy' and x != 'json', text.split('\n'))
+            return '\n'.join(lines)
 
+        raise Exception("Message is not ready...")
+    
     def clearchat(self):
         click(self.driver, By.CSS_SELECTOR, clear_key)
         print("cookies cleared")
