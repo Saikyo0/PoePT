@@ -64,7 +64,6 @@ class PoeLLM(LLM):
         finally:
             for f in files:
                 f.close()
-                pass
 
     # A property that returns a string, used for logging purposes only.
     @property

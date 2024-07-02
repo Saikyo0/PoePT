@@ -23,7 +23,6 @@ code_area="input[class*=CodeInput"
 go_key='//button[text()="Go"]'
 log_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'log')]"
 send_key="button[class*=SendButton]"
-text_area="textarea[class*=TextArea]" 
 clear_key="button[class*=ChatBreak]"
 msg_element="div[class*=Message_botMessageBubble]"
 stop_button_selector="button[class*=ChatStopMessageButton]"
@@ -84,9 +83,12 @@ class PoePT:
                 elements = self.driver.find_elements(By.CSS_SELECTOR, "div[class*=ChatMessage_chatMessage]")
                 chatMessage_element = elements[-1]
 
-                next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")
-                actionBar_bar = self.driver.find_element(By.CSS_SELECTOR, "section[class*='ChatMessageActionBar_actionBar']")
-                
+                next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")              
+                # wait 120 seconds for the response generation
+                actionBar_bar = WebDriverWait(self.driver, 120).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "section[class*='ChatMessageActionBar_actionBar']"))
+                )
+
                 if next_element == actionBar_bar:
                     return chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]").text
                 else:
@@ -132,7 +134,12 @@ class PoePT:
             self.driver.execute_script(f"window.location.href = '{website}{bot}/';")
         
         self.stat = "wait"
-        enter(self.driver, By.CSS_SELECTOR, text_area, prompt)
+
+        input_area_element = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "textarea[class*=TextArea]"))
+        )
+        self.driver.execute_script("arguments[0].value = arguments[1];", input_area_element, prompt)
+
         click(self.driver, By.CSS_SELECTOR, send_key)
         text = self.get_message()
         self.stat = "ready"
