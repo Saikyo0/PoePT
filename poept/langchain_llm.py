@@ -5,23 +5,18 @@ from langchain_core.pydantic_v1 import Field
 
 from .poept import PoePT 
 
-
-_poe = PoePT()
-
 # [CustomLLM](https://python.langchain.com/v0.1/docs/modules/model_io/llms/custom_llm/)
 # Inspired by https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/llms/openai.py#L145
 
-class PoeLLM(LLM):
-    email: str = Field(default=None)
-    model: str = Field(default="gpt-4o")
-    _poe: PoePT = _poe
-    
-    def __init__(self, email: str, model: str = "Assistant"):
-        super().__init__(email=email, model=model, _poe=PoePT())
-        self._poe.login(email)
 
-    def close(self):
-        self._poe.close()
+_poe = PoePT()
+
+class PoeLLM(LLM):
+    model: str = Field(default="Assistant")
+
+    def __init__(self, email: str, model: str = "gpt-4o"):
+        super().__init__(model=model)
+        _poe.login(email)
 
     # Takes in a string and some optional stop words, and returns a string. Used by invoke.
     def _call(self, prompt: str, stop: Optional[List[str]] = None, **kwargs: Any) -> str:
@@ -36,12 +31,9 @@ class PoeLLM(LLM):
         """
         if stop is not None:
             raise ValueError("stop kwargs are not permitted.")
-        return self._poe.ask(prompt, bot=self.model)
+        return _poe.ask(prompt, bot=self.model)
 
     # A property that returns a string, used for logging purposes only.
     @property
     def _llm_type(self) -> str:
         return "Poe"
-
-    def __del__(self):
-        self.close()

@@ -36,13 +36,13 @@ class PoePT:
         self.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
         self.stat = "false"
 
-    def getMessage(self):
+    def get_message(self):
         for i in range(10):
             try:
-                elements = self.driver.find_elements(By.CSS_SELECTOR, "div[class*=ChatMessage]")
+                elements = self.driver.find_elements(By.CSS_SELECTOR, "div[class*=ChatMessage_chatMessage]")
                 element = elements[-1]
                 next_element = element.find_element(By.XPATH, "following-sibling::*[1]")
-                chat_message_action_bar = self.driver.find_element(By.CSS_SELECTOR, "selection[class*='ChatMessageActionBar']")
+                chat_message_action_bar = self.driver.find_element(By.CSS_SELECTOR, "section[class*='ChatMessageActionBar_actionBar']")
                 if next_element == chat_message_action_bar:
                     return elements[-1].text
                 else:
@@ -89,7 +89,7 @@ class PoePT:
         self.driver.execute_script(f"window.location.href = '{website}{bot}/';")
         enter(self.driver, By.CSS_SELECTOR, text_area, prompt)
         click(self.driver, By.CSS_SELECTOR, send_key)
-        text = self.getMessage()
+        text = self.get_message()
         self.stat = "ready"
         return text
     
@@ -100,7 +100,7 @@ class PoePT:
         self.stat = "wait"
         enter(self.driver, By.CSS_SELECTOR, text_area, prompt)
         click(self.driver, By.CSS_SELECTOR, send_key)
-        text = self.getMessage()
+        text = self.get_message()
         self.stat = "ready"
         return text
     
