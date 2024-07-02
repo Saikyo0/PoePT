@@ -78,25 +78,20 @@ class PoePT:
         return True
     
     def get_message(self):
-        for i in range(30):
-            try:
-                elements = self.driver.find_elements(By.CSS_SELECTOR, "div[class*=ChatMessage_chatMessage]")
-                chatMessage_element = elements[-1]
+        actionBar_bar = WebDriverWait(self.driver, 120).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "section[class*='ChatMessageActionBar_actionBar']"))
+        )
+ 
+        elements = self.driver.find_elements(By.CSS_SELECTOR, "div[class*=ChatMessage_chatMessage]")
+        chatMessage_element = elements[-1]
 
-                actionBar_bar = self.driver.find_element(By.CSS_SELECTOR, "section[class*='ChatMessageActionBar_actionBar']")
-                next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")              
-
-                if next_element == actionBar_bar:
-                    return chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]").text
-                else:
-                    logger.info("waiting for the complete response...")
-                    time.sleep(1)
-            except Exception as e:
-                logger.warning(f"failed to find {msg_element}: {e}")
-                time.sleep(1 * i)
+        next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")              
+        if next_element == actionBar_bar:
+            return chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]").text
         else:
-            raise Exception("failed to extract the response message")
-    
+            logger.info("waiting for the complete response...")
+            time.sleep(1)
+
     def clearchat(self):
         click(self.driver, By.CSS_SELECTOR, clear_key)
         print("cookies cleared")
