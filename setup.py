@@ -13,7 +13,7 @@ setup(
     author='Saikyo0',
     author_email='mamaexus@gmail.com',
     url='https://github.com/saikyo0/PoePT',
-    packages=['poept'],
+    packages=['poept', 'poept.langchain'],
     install_requires=requirements,
     classifiers=[
         'Development Status :: 3 - Alpha',
