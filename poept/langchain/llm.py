@@ -1,6 +1,10 @@
 import langchain
+import re
+import tempfile
+import time
+
 from langchain.llms.base import LLM
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Any
 from langchain_core.pydantic_v1 import Field
 
 from ..poept import PoePT 
@@ -10,6 +14,18 @@ from ..poept import PoePT
 
 
 _poe = PoePT()
+
+def _get_files(text: str):
+    # Define the regex pattern to find text within <<< >>>
+    pattern = r'<<<(.*?)>>>'
+    
+    # Find all matches of the pattern
+    extracted_content = re.findall(pattern, text, re.DOTALL)
+    
+    # Remove the <<< >>> sections from the original text
+    cleaned_text = re.sub(pattern, '', text, flags=re.DOTALL)
+    
+    return cleaned_text, extracted_content
 
 class PoeLLM(LLM):
     model: str = Field(default="Assistant")
@@ -32,7 +48,23 @@ class PoeLLM(LLM):
         """
         if stop is not None:
             raise ValueError("stop kwargs are not permitted.")
-        return _poe.ask(prompt, bot=self.model)
+        
+        text, snippets = _get_files(prompt)
+        files = []
+
+        for content in snippets:
+            f = tempfile.NamedTemporaryFile("w", suffix='.txt', encoding='utf8')
+            f.write(content)
+            f.flush()
+            _poe.attach(f.name, bot=self.model)
+            files.append(f)
+
+        try:
+            return _poe.ask(text, bot=self.model)
+        finally:
+            for f in files:
+                f.close()
+                pass
 
     # A property that returns a string, used for logging purposes only.
     @property

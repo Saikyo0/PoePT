@@ -4,6 +4,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 from typing import Optional
 from .tools import click, enter, speech, record
 import time
@@ -134,6 +137,17 @@ class PoePT:
         text = self.get_message()
         self.stat = "ready"
         return text
+    
+    def attach(self, file_path: str, bot=default_bot):
+        if not str(self.driver.current_url).endswith("/" + bot):
+            self.driver.execute_script(f"window.location.href = '{website}{bot}/';")
+        
+        file_input = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "input[class*=ChatMessageFileInputButton]"))
+        )
+        
+        logger.info("attached file %s", file_path)
+        file_input.send_keys(file_path)
     
     def livevoice(self, timeout, fs=44100, micindex=2, file="audio.wav", chunk=1024):
         prompt = speech(record(timeout, fs, micindex, file, chunk))

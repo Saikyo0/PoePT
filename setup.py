@@ -8,7 +8,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
     name='PoePT',
-    version='0.3.0',
+    version='0.3.1',
     description='Python package for interacting with the Quora POE chatbot',
     author='Saikyo0',
     author_email='mamaexus@gmail.com',
