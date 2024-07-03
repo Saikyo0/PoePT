@@ -26,6 +26,26 @@ def _get_files(text: str):
     
     return cleaned_text, extracted_content
 
+def _ask(prompt: str, model: str, email=None, cookies=[]):
+    global _poe
+    _poe = PoePT(email=email, cookies=cookies)
+
+    text, snippets = _get_files(prompt)
+    files = []
+
+    for content in snippets:
+        f = tempfile.NamedTemporaryFile("w", suffix='.txt', encoding='utf8')
+        f.write(content)
+        f.flush()
+        _poe.attach(f.name, bot=model)
+        files.append(f)
+
+    try:
+        return _poe.ask(text, bot=model)
+    finally:
+        for f in files:
+            f.close()
+
 class PoeLLM(LLM):
     model: str = Field(default="Assistant")
     email: Optional[str] = Field(default=None)
@@ -33,8 +53,6 @@ class PoeLLM(LLM):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        global _poe
-        _poe = PoePT(email=self.email, cookies=self.cookies)
 
     # Takes in a string and some optional stop words, and returns a string. Used by invoke.
     def _call(self, prompt: str, stop: Optional[List[str]] = None, **kwargs: Any) -> str:
@@ -50,21 +68,7 @@ class PoeLLM(LLM):
         if stop is not None:
             raise ValueError("stop kwargs are not permitted.")
         
-        text, snippets = _get_files(prompt)
-        files = []
-
-        for content in snippets:
-            f = tempfile.NamedTemporaryFile("w", suffix='.txt', encoding='utf8')
-            f.write(content)
-            f.flush()
-            _poe.attach(f.name, bot=self.model)
-            files.append(f)
-
-        try:
-            return _poe.ask(text, bot=self.model)
-        finally:
-            for f in files:
-                f.close()
+        return _ask(prompt, model=self.model, email=self.email, cookies=self.cookies)
 
     # A property that returns a string, used for logging purposes only.
     @property
