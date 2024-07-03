@@ -12,8 +12,7 @@ from ..poept import PoePT
 # [CustomLLM](https://python.langchain.com/v0.1/docs/modules/model_io/llms/custom_llm/)
 # Inspired by https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/llms/openai.py#L145
 
-
-_poe = PoePT()
+_poe : Optional[PoePT] = None
 
 def _get_files(text: str):
     # Define the regex pattern to find text within <<< >>>
@@ -34,6 +33,8 @@ class PoeLLM(LLM):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        global _poe
+        _poe = PoePT(email=self.email, cookies=self.cookies)
 
     # Takes in a string and some optional stop words, and returns a string. Used by invoke.
     def _call(self, prompt: str, stop: Optional[List[str]] = None, **kwargs: Any) -> str:
