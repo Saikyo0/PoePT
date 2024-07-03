@@ -1,7 +1,5 @@
-import langchain
 import re
 import tempfile
-import time
 
 from langchain.llms.base import LLM
 from typing import Optional, List, Any
@@ -28,7 +26,8 @@ def _get_files(text: str):
 
 def _ask(prompt: str, model: str, email=None, cookies=[]):
     global _poe
-    _poe = PoePT(email=email, cookies=cookies)
+    if _poe is None:
+        _poe = PoePT(email=email, cookies=cookies)
 
     text, snippets = _get_files(prompt)
     files = []
