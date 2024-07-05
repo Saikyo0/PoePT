@@ -132,7 +132,7 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
 
     def goto(self, chat_id: str) -> Optional[str]:
         self.driver.execute_script(f"window.location.href = '{website}{chat_id}';")    
-        element = WebDriverWait(self.driver, 10).until(
+        element = WebDriverWait(self.driver, 60).until(
             EC.any_of(
                 EC.presence_of_element_located((By.CSS_SELECTOR, button_css_selector)),
                 EC.presence_of_element_located((By.CSS_SELECTOR, "h1[class*=StatusCodeError_statusCode]"))
