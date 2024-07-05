@@ -1,4 +1,4 @@
-import pickle
+import time
 import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -22,7 +22,6 @@ email_area='input[type="email"]'
 code_area="input[class*=CodeInput"
 go_key='//button[text()="Go"]'
 log_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'log')]"
-send_key="button[class*=SendButton]"
 clear_key="button[class*=ChatBreak]"
 msg_element="div[class*=Message_botMessageBubble]"
 stop_button_selector="button[class*=ChatStopMessageButton]"
@@ -115,6 +114,19 @@ class PoePT:
         with open(self.cookies_file_path, "wb") as f:
             json.dump(self.cookies, f)
     
+
+    def _typein(self, element, text):
+        js_code = """
+const element = arguments[0];
+element.value = arguments[1];
+element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }));
+element.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true }));
+element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+"""
+        self.driver.execute_script(js_code, element, text)
+        element.send_keys(' ')
+
+
     def ask(self, prompt="hello", bot=default_bot):
         if not str(self.driver.current_url).endswith("/" + bot):
             self.driver.execute_script(f"window.location.href = '{website}{bot}/';")
@@ -124,9 +136,21 @@ class PoePT:
         input_area_element = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "textarea[class*=TextArea]"))
         )
-        self.driver.execute_script("arguments[0].value = arguments[1];", input_area_element, prompt)
+        
+        self._typein(input_area_element, prompt)
 
-        click(self.driver, By.CSS_SELECTOR, send_key)
+        for _ in range(5):
+            send_button_element = self.driver.find_element(By.CSS_SELECTOR, "button[class*=SendButton]")
+            button_is_disabled = send_button_element.get_attribute("disabled") is not None
+            
+            if not button_is_disabled:
+                break
+
+            time.sleep(1)
+            continue
+
+        send_button_element.click()
+
         text = self.get_message()
         self.stat = "ready"
         return text

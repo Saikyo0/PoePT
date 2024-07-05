@@ -1,8 +1,8 @@
-import speech_recognition as sr
 import time
 
 
 def speech(file):
+    import speech_recognition as sr
     recognizer = sr.Recognizer()
     with sr.AudioFile(file) as source:
         audio = recognizer.record(source)
@@ -10,6 +10,7 @@ def speech(file):
     return prompt
 
 def record(timeout, fs, micindex, file, chunk):
+    import speech_recognition as sr
     r = sr.Recognizer()
     mic = sr.Microphone(
         device_index=micindex, 
