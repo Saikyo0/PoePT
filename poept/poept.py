@@ -13,6 +13,9 @@ import logging
 import json
 from urllib.parse import urlparse
     
+class BotNotFound(Exception):
+    pass
+
 logger = logging.getLogger(__name__)
 
 default_bot = "Assistant"
@@ -25,6 +28,7 @@ log_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'log
 clear_key="button[class*=ChatBreak]"
 msg_element="div[class*=Message_botMessageBubble]"
 stop_button_selector="button[class*=ChatStopMessageButton]"
+button_css_selector = "button[class*=SendButton]"
 
 class PoePT:
     cookies_file_path: str = os.path.expanduser("~/.cache/poept.cookies.json")
@@ -113,7 +117,7 @@ class PoePT:
         
         with open(self.cookies_file_path, "wb") as f:
             json.dump(self.cookies, f)
-    
+
 
     def _typein(self, element, text):
         js_code = """
@@ -126,11 +130,33 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
         self.driver.execute_script(js_code, element, text)
         element.send_keys(' ')
 
+    def goto(self, chat_id: str) -> Optional[str]:
+        self.driver.execute_script(f"window.location.href = '{website}{chat_id}';")    
+        element = WebDriverWait(self.driver, 10).until(
+            EC.any_of(
+                EC.presence_of_element_located((By.CSS_SELECTOR, button_css_selector)),
+                EC.presence_of_element_located((By.CSS_SELECTOR, "h1[class*=StatusCodeError_statusCode]"))
+            )
+        )
 
-    def ask(self, prompt="hello", bot=default_bot):
-        if not str(self.driver.current_url).endswith("/" + bot):
-            self.driver.execute_script(f"window.location.href = '{website}{bot}/';")
+        if element.tag_name == 'h1':
+            return element.text
+
         
+    def ask(self, prompt="hello", bot=default_bot, chat_id: Optional[str] = None):
+        err = None
+        for e in [chat_id, bot]:
+            if e is None:
+                continue
+            
+            err = self.goto(e)
+            if err is None:
+                break
+
+        if err:
+            logger.error("failed to open bot %s, %s", bot, chat_id)
+            raise BotNotFound(bot)
+            
         self.stat = "wait"
 
         input_area_element = WebDriverWait(self.driver, 10).until(
@@ -140,7 +166,7 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
         self._typein(input_area_element, prompt)
 
         for _ in range(5):
-            send_button_element = self.driver.find_element(By.CSS_SELECTOR, "button[class*=SendButton]")
+            send_button_element = self.driver.find_element(By.CSS_SELECTOR, button_css_selector)
             button_is_disabled = send_button_element.get_attribute("disabled") is not None
             
             if not button_is_disabled:
