@@ -9,10 +9,10 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from typing import Optional
 from .tools import click, enter, speech, record
-import time
 import logging
 import json
-
+from urllib.parse import urlparse
+    
 logger = logging.getLogger(__name__)
 
 default_bot = "Assistant"
@@ -114,15 +114,6 @@ class PoePT:
         
         with open(self.cookies_file_path, "wb") as f:
             json.dump(self.cookies, f)
-
-    def start_dialog(self, prompt="hello", bot=default_bot):
-        self.stat = "wait"
-        self.driver.execute_script(f"window.location.href = '{website}{bot}/';")
-        enter(self.driver, By.CSS_SELECTOR, text_area, prompt)
-        click(self.driver, By.CSS_SELECTOR, send_key)
-        text = self.get_message()
-        self.stat = "ready"
-        return text
     
     def ask(self, prompt="hello", bot=default_bot):
         if not str(self.driver.current_url).endswith("/" + bot):
@@ -162,3 +153,17 @@ class PoePT:
     def close(self):
         self.stat = "false"
         self.driver.quit()
+
+    def get_chat_id(self) -> Optional[str]:
+        # Get the current URL from the Selenium WebDriver
+        current_url = self.driver.current_url
+        
+        # Parse the URL to extract the path
+        parsed_url = urlparse(current_url)
+        
+        # Extract the part of the path starting with 'chat/'
+        if 'chat/' in parsed_url.path:
+            chat_part = parsed_url.path.split('chat/')[1]
+            return f'chat/{chat_part}'
+        else:
+            return None
