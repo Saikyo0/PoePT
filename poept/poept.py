@@ -40,8 +40,9 @@ stop_button_selector="button[class*=ChatStopMessageButton]"
 button_css_selector = "button[class*=SendButton]"
 
 
-def html_to_markdown(html_text):
-    text =  markdownify.markdownify(html_text)
+def to_markdown(element):
+    html = element.get_attribute('innerHTML')
+    text =  markdownify.markdownify(html)
     text = re.sub(r'\[\d+\]', '', text)
     text = re.sub(r'\s+([\.,!?])', r'\1', text)
     return text
@@ -122,8 +123,7 @@ class PoePT:
                     code_text = code_element.text.strip()
                     result.append(f"```{lang_text}\n{code_text}\n```")
             elif element.tag_name == 'p':
-                html = element.get_attribute('innerHTML')
-                result.append(html_to_markdown(html))
+                result.append(to_markdown(element))
 
             # Check if the element is a link
             elif element.tag_name == 'a':
@@ -141,10 +141,10 @@ class PoePT:
             # Check if the element is a list
             elif element.tag_name == 'ul':
                 for li in element.find_elements(By.CSS_SELECTOR, 'li'):
-                    result.append(f"* {li.text.strip()}")
+                    result.append(f"* {to_markdown(li)}")
             elif element.tag_name == 'ol':
                 for idx, li in enumerate(element.find_elements(By.CSS_SELECTOR, 'li'), start=1):
-                    result.append(f"{idx}. {li.text.strip()}")
+                    result.append(f"{idx}. {to_markdown(li)}")
 
             # For any other elements, recursively process children
             else:
@@ -156,7 +156,7 @@ class PoePT:
                         logger.error("failed to process the following element (%r): %s", element, err)
 
                 if (not children or len(children) == 0) and element.text:
-                    result.append(element.text)
+                    result.append(to_markdown(element))
 
         process_element(element)
         return '\n'.join(result)
