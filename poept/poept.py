@@ -208,6 +208,7 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
 
 
     def ask(self, prompt="hello", bot=default_bot, chat_id: Optional[str] = None):
+        start_ts = time.time()
         err = None
         for e in [chat_id, bot]:
             if e is None:
@@ -243,6 +244,9 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
 
         text = self.get_message()
         self.stat = "ready"
+
+        t = time.time() - start_ts
+        logger.info("%s %ds %s-> %s", bot, t, prompt, text)
         return text
 
     def attach(self, file_path: str, bot=default_bot):
