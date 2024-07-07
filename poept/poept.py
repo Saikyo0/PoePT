@@ -131,6 +131,7 @@ class PoePT:
         if len(self.cookies) < 1:
             return False
 
+        logger.info("Applying cookies...")
         self.driver.get(website)
         self.driver.delete_all_cookies()
         for cookie in self.cookies:
@@ -138,9 +139,10 @@ class PoePT:
         self.driver.refresh()
         try:
             self.driver.find_element(By.CSS_SELECTOR, 'button[class*=ChatMessageSendButton_sendButton]')
+            logger.info("cookies were applied")
         except selenium.common.exceptions.NoSuchElementException as err:
             self.driver.save_screenshot(f"{__name__}-apply_cookies_failed.png")
-            logger.exception(err)
+            logger.exception("Failed to apply cookies: %s", err)
             return False
 
         return True
