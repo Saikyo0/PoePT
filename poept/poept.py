@@ -15,8 +15,11 @@ from .tools import click, enter, speech, record
 import logging
 import json
 from urllib.parse import urlparse
-    
+
 class BotNotFound(Exception):
+    pass
+
+class AuthenticationFailure(Exception):
     pass
 
 logger = logging.getLogger(__name__)
@@ -40,25 +43,25 @@ def web_element_to_markdown(element: WebElement) -> str:
         if any('MarkdownCodeBlock_codeBlock' in cls for cls in element.get_attribute('class').split()):
             lang_element = element.find_element(By.CSS_SELECTOR, 'div[class*=MarkdownCodeBlock_languageName]')
             code_element = element.find_element(By.CSS_SELECTOR, 'code[class*=MarkdownCodeBlock_codeTag]')
-            
+
             if lang_element and code_element:
                 lang_text = lang_element.text.strip()
                 code_text = code_element.text.strip()
                 result.append(f"```{lang_text}\n{code_text}\n```")
-        
+
         # Check if the element is a link
         elif element.tag_name == 'a':
             link_text = element.text.strip()
             url = element.get_attribute('href')
             if url is not None:
                 result.append(f"[{link_text}]({url})")
-        
+
         # Check if the element is an image
         elif element.tag_name == 'img':
             alt = element.get_attribute('alt') or ''
             src = element.get_attribute('src') or ''
             result.append(f"![{alt}]({src})")
-        
+
         # Check if the element is a list
         elif element.tag_name == 'ul':
             for li in element.find_elements_by_tag_name('li'):
@@ -66,7 +69,7 @@ def web_element_to_markdown(element: WebElement) -> str:
         elif element.tag_name == 'ol':
             for idx, li in enumerate(element.find_elements_by_tag_name('li'), start=1):
                 result.append(f"{idx}. {li.text.strip()}")
-        
+
         # For any other elements, recursively process children
         else:
             children = element.find_elements(By.XPATH, "./*")
@@ -75,7 +78,7 @@ def web_element_to_markdown(element: WebElement) -> str:
                     process_element(child)
                 except selenium.common.exceptions.NoSuchElementException as err:
                     logger.error("failed to process the following element (%r): %s", element, err)
-    
+
             if not children and element.text:
                 result.append(element.text.strip())
 
@@ -88,7 +91,7 @@ class PoePT:
     def __init__(self, cookies: list = [], email: Optional[str] = os.environ.get("POE_EMAIL"), headless: bool = os.environ.get("POE_HEADLESS", "true") == "true"):
         chrome_options = Options()
         if headless:
-            chrome_options.add_argument("--headless")   
+            chrome_options.add_argument("--headless")
         chrome_options.add_argument("--log-level=3")
         chrome_options.add_argument("--disable-infobars")
         chrome_options.add_argument("--disable-extensions")
@@ -103,17 +106,20 @@ class PoePT:
         if len(self.cookies) < 1:
             self.cookies = self.read_cookies()
 
-
         if len(self.cookies) < 1:
             if email is None:
-                raise Exception("no cookies and email are set")
+                raise AuthenticationFailure("no cookies and email are set")
             else:
                 self.login(email)
-
-        self.apply_cookies()
+        else:
+            # i noticed that sometimes cookies are not applied from first run :facepalm:
+            for _ in range(3):
+                if self.apply_cookies():
+                    break
+            else:
+                raise AuthenticationFailure("cookies wasn't applied after a few attempts")
 
     def read_cookies(self):
-
         if os.path.exists(self.cookies_file_path):
             print(f"loading cookies from {self.cookies_file_path}")
             with open(self.cookies_file_path, 'rb') as f:
@@ -124,46 +130,53 @@ class PoePT:
     def apply_cookies(self):
         if len(self.cookies) < 1:
             return False
-        
+
         self.driver.get(website)
         self.driver.delete_all_cookies()
         for cookie in self.cookies:
             self.driver.add_cookie(cookie)
         self.driver.refresh()
+        try:
+            self.driver.find_element(By.CSS_SELECTOR, 'button[class*=ChatMessageSendButton_sendButton]')
+        except Exception as err:
+            self.driver.save_screenshot(f"{__name__}-apply_cookies_failed.png")
+            logger.exception(err)
+            return False
+
         return True
-    
+
     def get_message(self):
         actionBar_bar = WebDriverWait(self.driver, 120).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "section[class*='ChatMessageActionBar_actionBar']"))
         )
- 
+
         elements = self.driver.find_elements(By.CSS_SELECTOR, "div[class*=ChatMessage_chatMessage]")
         chatMessage_element = elements[-1]
 
-        next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")              
+        next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")
         if next_element == actionBar_bar:
             bot_message = chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]")
             return web_element_to_markdown(bot_message)
 
         raise Exception("Message is not ready...")
-    
+
     def clearchat(self):
         click(self.driver, By.CSS_SELECTOR, clear_key)
         print("cookies cleared")
 
     def login(self, email: str):
-        self.driver.get(website)    
+        self.driver.get(website)
         self.driver.execute_script('window.scrollBy(0, 5);')
-        
+
         enter(self.driver, By.CSS_SELECTOR, email_area, email)
         click(self.driver, By.XPATH, go_key)
-        
+
         code = input("Enter code: ")
         enter(self.driver, By.CSS_SELECTOR, code_area, code)
         click(self.driver, By.XPATH, log_key)
 
         self.cookies = self.driver.get_cookies()
-        
+
         with open(self.cookies_file_path, "wb") as f:
             json.dump(self.cookies, f)
 
@@ -180,7 +193,7 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
         element.send_keys(' ')
 
     def goto(self, chat_id: str) -> Optional[str]:
-        self.driver.execute_script(f"window.location.href = '{website}{chat_id}';")    
+        self.driver.execute_script(f"window.location.href = '{website}{chat_id}';")
         element = WebDriverWait(self.driver, 60).until(
             EC.any_of(
                 EC.presence_of_element_located((By.CSS_SELECTOR, button_css_selector)),
@@ -191,13 +204,13 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
         if element.tag_name == 'h1':
             return element.text
 
-        
+
     def ask(self, prompt="hello", bot=default_bot, chat_id: Optional[str] = None):
         err = None
         for e in [chat_id, bot]:
             if e is None:
                 continue
-            
+
             err = self.goto(e)
             if err is None:
                 break
@@ -205,19 +218,19 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
         if err:
             logger.error("failed to open bot %s, %s", bot, chat_id)
             raise BotNotFound(bot)
-            
+
         self.stat = "wait"
 
         input_area_element = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "textarea[class*=TextArea]"))
         )
-        
+
         self._typein(input_area_element, prompt)
 
         for _ in range(5):
             send_button_element = self.driver.find_element(By.CSS_SELECTOR, button_css_selector)
             button_is_disabled = send_button_element.get_attribute("disabled") is not None
-            
+
             if not button_is_disabled:
                 break
 
@@ -229,22 +242,22 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
         text = self.get_message()
         self.stat = "ready"
         return text
-    
+
     def attach(self, file_path: str, bot=default_bot):
         if not str(self.driver.current_url).endswith("/" + bot):
             self.driver.execute_script(f"window.location.href = '{website}{bot}/';")
-        
+
         file_input = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "input[class*=ChatMessageFileInputButton]"))
         )
-        
+
         logger.info("attached file %s", file_path)
         file_input.send_keys(file_path)
-    
+
     def livevoice(self, timeout, fs=44100, micindex=2, file="audio.wav", chunk=1024):
         prompt = speech(record(timeout, fs, micindex, file, chunk))
         return prompt
-    
+
     def filevoice(self, file="audio.wav"):
         prompt = speech(file)
         return prompt
@@ -256,10 +269,10 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
     def get_chat_id(self) -> Optional[str]:
         # Get the current URL from the Selenium WebDriver
         current_url = self.driver.current_url
-        
+
         # Parse the URL to extract the path
         parsed_url = urlparse(current_url)
-        
+
         # Extract the part of the path starting with 'chat/'
         if 'chat/' in parsed_url.path:
             chat_part = parsed_url.path.split('chat/')[1]
