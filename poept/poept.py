@@ -81,9 +81,9 @@ def web_element_to_markdown(element: WebElement) -> str:
                     process_element(child)
                 except selenium.common.exceptions.NoSuchElementException as err:
                     logger.error("failed to process the following element (%r): %s", element, err)
-
-            if not children and element.text:
-                result.append(element.text.strip())
+            text = element.get_attribute('innerText')
+            if text and len(text) > 0:
+                result.append(text.strip())
 
     process_element(element)
 
