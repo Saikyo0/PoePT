@@ -67,10 +67,10 @@ def web_element_to_markdown(element: WebElement) -> str:
 
         # Check if the element is a list
         elif element.tag_name == 'ul':
-            for li in element.find_elements_by_tag_name('li'):
+            for li in element.find_elements(By.CSS_SELECTOR, 'li'):
                 result.append(f"* {li.text.strip()}")
         elif element.tag_name == 'ol':
-            for idx, li in enumerate(element.find_elements_by_tag_name('li'), start=1):
+            for idx, li in enumerate(element.find_elements(By.CSS_SELECTOR, 'li'), start=1):
                 result.append(f"{idx}. {li.text.strip()}")
 
         # For any other elements, recursively process children
