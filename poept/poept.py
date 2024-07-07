@@ -1,11 +1,14 @@
 import time
 import os
+import selenium
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.remote.webelement import WebElement
+
 
 from typing import Optional
 from .tools import click, enter, speech, record
@@ -26,10 +29,58 @@ code_area="input[class*=CodeInput"
 go_key='//button[text()="Go"]'
 log_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'log')]"
 clear_key="button[class*=ChatBreak]"
-msg_element="div[class*=Message_botMessageBubble]"
 stop_button_selector="button[class*=ChatStopMessageButton]"
 button_css_selector = "button[class*=SendButton]"
 
+def web_element_to_markdown(element: WebElement) -> str:
+    result = []
+
+    def process_element(element: WebElement):
+        # Check if the element is a code block
+        if any('MarkdownCodeBlock_codeBlock' in cls for cls in element.get_attribute('class').split()):
+            lang_element = element.find_element(By.CSS_SELECTOR, 'div[class*=MarkdownCodeBlock_languageName]')
+            code_element = element.find_element(By.CSS_SELECTOR, 'code[class*=MarkdownCodeBlock_codeTag]')
+            
+            if lang_element and code_element:
+                lang_text = lang_element.text.strip()
+                code_text = code_element.text.strip()
+                result.append(f"```{lang_text}\n{code_text}\n```")
+        
+        # Check if the element is a link
+        elif element.tag_name == 'a':
+            link_text = element.text.strip()
+            url = element.get_attribute('href')
+            result.append(f"[{link_text}]({url})")
+        
+        # Check if the element is an image
+        elif element.tag_name == 'img':
+            alt = element.get_attribute('alt') or ''
+            src = element.get_attribute('src') or ''
+            result.append(f"![{alt}]({src})")
+        
+        # Check if the element is a list
+        elif element.tag_name == 'ul':
+            for li in element.find_elements_by_tag_name('li'):
+                result.append(f"* {li.text.strip()}")
+        elif element.tag_name == 'ol':
+            for idx, li in enumerate(element.find_elements_by_tag_name('li'), start=1):
+                result.append(f"{idx}. {li.text.strip()}")
+        
+        # For any other elements, recursively process children
+        else:
+            children = element.find_elements(By.XPATH, "./*")
+            for child in children:
+                try:
+                    process_element(child)
+                except selenium.common.exceptions.NoSuchElementException as err:
+                    logger.error("failed to process the following element (%r): %s", element, err)
+    
+            if not children and element.text:
+                result.append(element.text.strip())
+
+    process_element(element)
+
+    return '\n'.join(result)
 class PoePT:
     cookies_file_path: str = os.path.expanduser("~/.cache/poept.cookies.json")
 
@@ -90,11 +141,8 @@ class PoePT:
 
         next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")              
         if next_element == actionBar_bar:
-            text = chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]").text
-            lines = []
-            # filter out service text
-            lines = filter(lambda x: x != 'Copy' and x != 'json', text.split('\n'))
-            return '\n'.join(lines)
+            bot_message = chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]")
+            return web_element_to_markdown(bot_message)
 
         raise Exception("Message is not ready...")
     
