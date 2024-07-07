@@ -50,7 +50,8 @@ def web_element_to_markdown(element: WebElement) -> str:
         elif element.tag_name == 'a':
             link_text = element.text.strip()
             url = element.get_attribute('href')
-            result.append(f"[{link_text}]({url})")
+            if url is not None:
+                result.append(f"[{link_text}]({url})")
         
         # Check if the element is an image
         elif element.tag_name == 'img':
