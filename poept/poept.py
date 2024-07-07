@@ -22,6 +22,9 @@ class BotNotFound(Exception):
 class AuthenticationFailure(Exception):
     pass
 
+class EmptyResponse(Exception):
+    pass
+
 logger = logging.getLogger(__name__)
 
 default_bot = "Assistant"
@@ -139,7 +142,7 @@ class PoePT:
         self.driver.refresh()
         try:
             self.driver.find_element(By.CSS_SELECTOR, 'button[class*=ChatMessageSendButton_sendButton]')
-            logger.info("cookies were applied")
+            logger.info("Cookies were applied")
         except selenium.common.exceptions.NoSuchElementException as err:
             self.driver.save_screenshot(f"{__name__}-apply_cookies_failed.png")
             logger.exception("Failed to apply cookies: %s", err)
@@ -242,7 +245,13 @@ element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
 
         send_button_element.click()
 
-        text = self.get_message()
+        for _ in range(3):
+            text = self.get_message()
+            if text and len(text) > 0:
+                break
+        else:
+            raise EmptyResponse(text)
+
         self.stat = "ready"
 
         t = time.time() - start_ts
