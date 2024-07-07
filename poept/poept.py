@@ -1,5 +1,6 @@
 import time
 import os
+import re
 import selenium
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -8,7 +9,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webelement import WebElement
-
+import markdownify
 
 from typing import Optional
 from .tools import click, enter, speech, record
@@ -38,60 +39,13 @@ clear_key="button[class*=ChatBreak]"
 stop_button_selector="button[class*=ChatStopMessageButton]"
 button_css_selector = "button[class*=SendButton]"
 
-def web_element_to_markdown(element: WebElement) -> str:
-    result = []
 
-    def process_element(element: WebElement):
-        # Check if the element is a code block
-        if any('MarkdownCodeBlock_codeBlock' in cls for cls in element.get_attribute('class').split()):
-            lang_element = element.find_element(By.CSS_SELECTOR, 'div[class*=MarkdownCodeBlock_languageName]')
-            code_element = element.find_element(By.CSS_SELECTOR, 'code[class*=MarkdownCodeBlock_codeTag]')
+def html_to_markdown(html_text):
+    text =  markdownify.markdownify(html_text)
+    text = re.sub(r'\[\d+\]', '', text)
+    text = re.sub(r'\s+([\.,!?])', r'\1', text)
+    return text
 
-            if lang_element and code_element:
-                lang_text = lang_element.text.strip()
-                code_text = code_element.text.strip()
-                result.append(f"```{lang_text}\n{code_text}\n```")
-
-        # Check if the element is a link
-        elif element.tag_name == 'a':
-            link_text = element.text.strip()
-            url = element.get_attribute('href')
-            if url is not None:
-                result.append(f"[{link_text}]({url})")
-
-        # Check if the element is an image
-        elif element.tag_name == 'img':
-            alt = element.get_attribute('alt') or ''
-            src = element.get_attribute('src') or ''
-            result.append(f"![{alt}]({src})")
-
-        # Check if the element is a list
-        elif element.tag_name == 'ul':
-            for li in element.find_elements(By.CSS_SELECTOR, 'li'):
-                result.append(f"* {li.text.strip()}")
-        elif element.tag_name == 'ol':
-            for idx, li in enumerate(element.find_elements(By.CSS_SELECTOR, 'li'), start=1):
-                result.append(f"{idx}. {li.text.strip()}")
-
-        # For any other elements, recursively process children
-        else:
-            children = element.find_elements(By.XPATH, "./*")
-            for child in children:
-                try:
-                    process_element(child)
-                except selenium.common.exceptions.NoSuchElementException as err:
-                    logger.error("failed to process the following element (%r): %s", element, err)
-            text = element.get_attribute('innerText')
-            if text and len(text) > 0:
-                result.append(text.strip())
-
-    process_element(element)
-
-    if len(result) > 0:
-        return '\n'.join(result)
-    else:
-        # todo: why it happens that an empty response is returned?
-        return element.text
 class PoePT:
     cookies_file_path: str = os.path.expanduser("~/.cache/poept.cookies.json")
 
@@ -128,7 +82,7 @@ class PoePT:
 
     def read_cookies(self):
         if os.path.exists(self.cookies_file_path):
-            print(f"loading cookies from {self.cookies_file_path}")
+            logger.info(f"loading cookies from {self.cookies_file_path}")
             with open(self.cookies_file_path, 'rb') as f:
                 return json.load(f)
 
@@ -154,6 +108,60 @@ class PoePT:
 
         return True
 
+    def _web_element_to_markdown(self, element: WebElement) -> str:
+        result = []
+
+        def process_element(element: WebElement):
+            # Check if the element is a code block
+            if any('MarkdownCodeBlock_codeBlock' in cls for cls in element.get_attribute('class').split()):
+                lang_element = element.find_element(By.CSS_SELECTOR, 'div[class*=MarkdownCodeBlock_languageName]')
+                code_element = element.find_element(By.CSS_SELECTOR, 'code[class*=MarkdownCodeBlock_codeTag]')
+
+                if lang_element and code_element:
+                    lang_text = lang_element.text.strip()
+                    code_text = code_element.text.strip()
+                    result.append(f"```{lang_text}\n{code_text}\n```")
+            elif element.tag_name == 'p':
+                html = element.get_attribute('innerHTML')
+                result.append(html_to_markdown(html))
+
+            # Check if the element is a link
+            elif element.tag_name == 'a':
+                link_text = element.text.strip()
+                url = element.get_attribute('href')
+                if url is not None:
+                    result.append(f"[{link_text}]({url})")
+
+            # Check if the element is an image
+            elif element.tag_name == 'img':
+                alt = element.get_attribute('alt') or ''
+                src = element.get_attribute('src') or ''
+                result.append(f"![{alt}]({src})")
+
+            # Check if the element is a list
+            elif element.tag_name == 'ul':
+                for li in element.find_elements(By.CSS_SELECTOR, 'li'):
+                    result.append(f"* {li.text.strip()}")
+            elif element.tag_name == 'ol':
+                for idx, li in enumerate(element.find_elements(By.CSS_SELECTOR, 'li'), start=1):
+                    result.append(f"{idx}. {li.text.strip()}")
+
+            # For any other elements, recursively process children
+            else:
+                children = element.find_elements(By.XPATH, "./*")
+                for child in children:
+                    try:
+                        process_element(child)
+                    except selenium.common.exceptions.NoSuchElementException as err:
+                        logger.error("failed to process the following element (%r): %s", element, err)
+
+                if (not children or len(children) == 0) and element.text:
+                    result.append(element.text)
+
+        process_element(element)
+        return '\n'.join(result)
+
+
     def get_message(self):
         actionBar_bar = WebDriverWait(self.driver, 120).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "section[class*='ChatMessageActionBar_actionBar']"))
@@ -165,13 +173,12 @@ class PoePT:
         next_element = chatMessage_element.find_element(By.XPATH, "following-sibling::*[1]")
         if next_element == actionBar_bar:
             bot_message = chatMessage_element.find_element(By.CSS_SELECTOR, "div[class*=Markdown_markdownContainer]")
-            return web_element_to_markdown(bot_message)
+            return self._web_element_to_markdown(bot_message)
 
         raise Exception("Message is not ready...")
 
     def clearchat(self):
         click(self.driver, By.CSS_SELECTOR, clear_key)
-        print("cookies cleared")
 
     def login(self, email: str):
         self.driver.get(website)
