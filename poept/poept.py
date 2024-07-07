@@ -138,7 +138,7 @@ class PoePT:
         self.driver.refresh()
         try:
             self.driver.find_element(By.CSS_SELECTOR, 'button[class*=ChatMessageSendButton_sendButton]')
-        except Exception as err:
+        except selenium.common.exceptions.NoSuchElementException as err:
             self.driver.save_screenshot(f"{__name__}-apply_cookies_failed.png")
             logger.exception(err)
             return False
