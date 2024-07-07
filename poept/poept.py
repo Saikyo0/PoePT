@@ -87,7 +87,11 @@ def web_element_to_markdown(element: WebElement) -> str:
 
     process_element(element)
 
-    return '\n'.join(result)
+    if len(result) > 0:
+        return '\n'.join(result)
+    else:
+        # todo: why it happens that an empty response is returned?
+        return element.text
 class PoePT:
     cookies_file_path: str = os.path.expanduser("~/.cache/poept.cookies.json")
 
