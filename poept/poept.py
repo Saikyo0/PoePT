@@ -48,9 +48,10 @@ def to_markdown(element):
     return text
 
 class PoePT:
-    cookies_file_path: str = os.path.expanduser("~/.cache/poept.cookies.json")
+    cookies_file_path: str = os.path.expanduser("~/.cache/poe.cookies.txt")
+    alternative_cookies_file_path: str = os.path.realpath("./poe.cookies.txt")
 
-    def __init__(self, cookies: list = [], email: Optional[str] = os.environ.get("POE_EMAIL"), headless: bool = os.environ.get("POE_HEADLESS", "true") == "true"):
+    def __init__(self, cookies: Optional[str] = os.environ.get("POE_COOKIE"), email: Optional[str] = os.environ.get("POE_EMAIL"), headless: bool = os.environ.get("POE_HEADLESS", "true") == "true"):
         chrome_options = Options()
         if headless:
             chrome_options.add_argument("--headless")
@@ -65,16 +66,19 @@ class PoePT:
         self.stat = "false"
 
         self.cookies = cookies
-        if len(self.cookies) < 1:
+
+        # cookies are not set from the constructor arguments
+        if self.cookies is None:
             self.cookies = self.read_cookies()
 
-        if len(self.cookies) < 1:
+        if self.cookies is None:
             if email is None:
                 raise AuthenticationFailure("no cookies and email are set")
             else:
                 self.login(email)
         else:
             # i noticed that sometimes cookies are not applied from first run :facepalm:
+            # workaround
             for _ in range(3):
                 if self.apply_cookies():
                     break
@@ -82,23 +86,23 @@ class PoePT:
                 raise AuthenticationFailure("cookies wasn't applied after a few attempts")
 
     def read_cookies(self):
-        if os.path.exists(self.cookies_file_path):
-            logger.info(f"loading cookies from {self.cookies_file_path}")
-            with open(self.cookies_file_path, 'rb') as f:
-                return json.load(f)
+        for cookies_file in [self.cookies_file_path, self.alternative_cookies_file_path]:
+            if os.path.exists(cookies_file):
+                logger.info(f"loading cookies from {self.cookies_file_path}")
+                with open(cookies_file, 'r', encoding='utf8') as f:
+                    return f.read()
 
         return []
 
     def apply_cookies(self):
-        if len(self.cookies) < 1:
+        if self.cookies is None:
             return False
 
         logger.info("Applying cookies...")
         self.driver.get(website)
-        self.driver.delete_all_cookies()
-        for cookie in self.cookies:
-            self.driver.add_cookie(cookie)
+        self.driver.execute_script(f'document.cookie="{self.cookies}";')
         self.driver.refresh()
+
         try:
             self.driver.find_element(By.CSS_SELECTOR, 'button[class*=ChatMessageSendButton_sendButton]')
             logger.info("Cookies were applied")
@@ -191,10 +195,12 @@ class PoePT:
         enter(self.driver, By.CSS_SELECTOR, code_area, code)
         click(self.driver, By.XPATH, log_key)
 
-        self.cookies = self.driver.get_cookies()
+        # todo: this is not tested
+        self.cookies = self.driver.execute_script(f"document.cookie;")
 
-        with open(self.cookies_file_path, "wb") as f:
-            json.dump(self.cookies, f)
+        # cache cookies file
+        with open(self.cookies_file_path, "w", encoding='utf8') as f:
+            f.write(self.cookies)
 
 
     def _typein(self, element, text):
