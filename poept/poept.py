@@ -48,8 +48,8 @@ def to_markdown(element):
     return text
 
 class PoePT:
-    cookies_file_path: str = os.path.expanduser("~/.cache/poe.cookies.txt")
-    alternative_cookies_file_path: str = os.path.realpath("./poe.cookies.txt")
+    cookies_file_path: str = os.path.expanduser("~/.cache/poept.cookies.json")
+    alternative_cookies_file_path: str = os.path.realpath("./poept.cookies.json")
 
     def __init__(self, cookies: Optional[str] = os.environ.get("POE_COOKIE"), email: Optional[str] = os.environ.get("POE_EMAIL"), headless: bool = os.environ.get("POE_HEADLESS", "true") == "true"):
         chrome_options = Options()
@@ -65,9 +65,11 @@ class PoePT:
         self.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
         self.stat = "false"
 
-        self.cookies = cookies
+        self.cookies = None
 
-        # cookies are not set from the constructor arguments
+        if cookies is not None:
+            self.cookies = json.loads(cookies)
+
         if self.cookies is None:
             self.cookies = self.read_cookies()
 
@@ -89,8 +91,8 @@ class PoePT:
         for cookies_file in [self.cookies_file_path, self.alternative_cookies_file_path]:
             if os.path.exists(cookies_file):
                 logger.info(f"loading cookies from {self.cookies_file_path}")
-                with open(cookies_file, 'r', encoding='utf8') as f:
-                    return f.read()
+                with open(cookies_file, 'rb') as f:
+                    return json.load(f)
 
         return []
 
@@ -100,7 +102,12 @@ class PoePT:
 
         logger.info("Applying cookies...")
         self.driver.get(website)
-        self.driver.execute_script(f'document.cookie="{self.cookies}";')
+
+        self.driver.delete_all_cookies()
+        for cookie in self.cookies:
+            print(cookie)
+            self.driver.add_cookie(cookie)
+
         self.driver.refresh()
 
         try:
