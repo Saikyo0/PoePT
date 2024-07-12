@@ -202,12 +202,9 @@ class PoePT:
         enter(self.driver, By.CSS_SELECTOR, code_area, code)
         click(self.driver, By.XPATH, log_key)
 
-        # todo: this is not tested
-        self.cookies = self.driver.execute_script(f"document.cookie;")
-
-        # cache cookies file
-        with open(self.cookies_file_path, "w", encoding='utf8') as f:
-            f.write(self.cookies)
+        self.cookies = self.driver.get_cookies()
+        with open(self.cookies_file_path, "wb") as f:
+            json.dump(self.cookies, f)
 
 
     def _typein(self, element, text):
