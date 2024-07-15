@@ -125,7 +125,7 @@ class PoePT:
 
         def process_element(element: WebElement):
             # Check if the element is a code block
-            if any('MarkdownCodeBlock_codeBlock' in cls for cls in element.get_attribute('class').split()):
+            if element.get_attribute('class') and any('MarkdownCodeBlock_codeBlock' in cls for cls in element.get_attribute('class').split()):
                 lang_element = element.find_element(By.CSS_SELECTOR, 'div[class*=MarkdownCodeBlock_languageName]')
                 code_element = element.find_element(By.CSS_SELECTOR, 'code[class*=MarkdownCodeBlock_codeTag]')
 
