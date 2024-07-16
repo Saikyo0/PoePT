@@ -29,7 +29,7 @@ def _ask(prompt: str, model: str, email=None):
     if _poe is None:
         _poe = PoePT(email=email)
 
-    text, snippets = _get_files(prompt)
+
     files = []
 
     for content in snippets:
@@ -40,7 +40,7 @@ def _ask(prompt: str, model: str, email=None):
         files.append(f)
 
     try:
-        return _poe.ask(text, bot=model)
+        return _poe.ask(prompt, bot=model)
     finally:
         for f in files:
             f.close()
