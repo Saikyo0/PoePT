@@ -12,17 +12,17 @@ from ..poept import PoePT
 
 _poe : Optional[PoePT] = None
 
-def _get_files(text: str):
-    # Define the regex pattern to find text within <<< >>>
-    pattern = r'<<<(.*?)>>>'
+# def _get_files(text: str):
+#     # Define the regex pattern to find text within <<< >>>
+#     pattern = r'<<<(.*?)>>>'
 
-    # Find all matches of the pattern
-    extracted_content = re.findall(pattern, text, re.DOTALL)
+#     # Find all matches of the pattern
+#     extracted_content = re.findall(pattern, text, re.DOTALL)
 
-    # Remove the <<< >>> sections from the original text
-    cleaned_text = re.sub(pattern, '', text, flags=re.DOTALL)
+#     # Remove the <<< >>> sections from the original text
+#     cleaned_text = re.sub(pattern, '', text, flags=re.DOTALL)
 
-    return cleaned_text, extracted_content
+#     return cleaned_text, extracted_content
 
 def _ask(prompt: str, model: str, email=None):
     global _poe
@@ -40,8 +40,9 @@ def _ask(prompt: str, model: str, email=None):
     try:
         return _poe.ask(prompt, bot=model)
     finally:
-        for f in files:
-            f.close()
+        # for f in files:
+        #     f.close()
+        pass
 
 class PoeLLM(LLM):
     model: str = Field(default="Assistant")
