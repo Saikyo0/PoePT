@@ -29,15 +29,13 @@ def _ask(prompt: str, model: str, email=None):
     if _poe is None:
         _poe = PoePT(email=email)
 
-
-    files = []
-
-    for content in snippets:
-        f = tempfile.NamedTemporaryFile("w", suffix='.txt', encoding='utf8')
-        f.write(content)
-        f.flush()
-        _poe.attach(f.name, bot=model)
-        files.append(f)
+    # files = []
+    # for content in snippets:
+    #     f = tempfile.NamedTemporaryFile("w", suffix='.txt', encoding='utf8')
+    #     f.write(content)
+    #     f.flush()
+    #     _poe.attach(f.name, bot=model)
+    #     files.append(f)
 
     try:
         return _poe.ask(prompt, bot=model)
