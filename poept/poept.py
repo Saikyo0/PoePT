@@ -105,7 +105,6 @@ class PoePT:
 
         self.driver.delete_all_cookies()
         for cookie in self.cookies:
-            print(cookie)
             self.driver.add_cookie(cookie)
 
         self.driver.refresh()
