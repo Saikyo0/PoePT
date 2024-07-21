@@ -1,8 +1,11 @@
 # PoePT
 PoePT is a simple Selenium Python package that provides automation for interacting with the Poe chatbots.
 Giving you access to multiple chatbots like:
+- Assistant
 - ChatGPT-3
 - ChatGPT-4
+- Gemini
+- Bard
 - Claude-Instant  
  <br />
 
@@ -36,7 +39,7 @@ bot.login("your_email@example.com")
 - Once you're logged in, you can ask a question to the chatbot of your choice and retrieve the result:
 
 ```python
-result = bot.ask(bot="sage", prompt="hello")
+result = bot.ask(bot="Assistant", prompt="hello")
 print(result)
 ```
 - When you're done with your session, be sure to close the connection:
@@ -56,7 +59,7 @@ bot.close()
 - status of client
 
 ```python
-status = bot.stat
+status = bot.status
 ```
 | Status | Meanings                                 |
 |--------|------------------------------------------|
@@ -74,22 +77,30 @@ import threading
 
 bot = PoePT()
 bot.login("<email>@gmail.com") 
+
+prompt = "Write A Lorem Ipsum"
+
 def ask_bot():
-    bot.ask("Sage", "Write A Lorem Ipsum")
+    print("> "+prompt)
+    bot.ask(bot="Assistant", prompt=prompt)
 
 threading.Thread(target=ask_bot).start()
-while bot.stat == "wait":
-    print(bot.stat)
-    print('\r' + bot.response, end='')
+while True:
+    if bot.prompt == prompt:
+        if bot.status == "wait":
+            print(bot.status)
+            print('\r' + bot.response, end='')
+        elif bot.status == "ready":
+            break
 ```
 
 - Live voice Input
 
 ```python
 print("Listening...") 
-question = bot.livevoice(timeout=2)
+prompt = bot.live_voice(timeout=4)
 print("Recording complete.")
-result = bot.ask(bot="sage", prompt=question)
+result = bot.ask(bot="Assistant", prompt=prompt)
 print("\nresponse:", result)
 ```
   
@@ -97,53 +108,39 @@ print("\nresponse:", result)
 
 - File voice Input
 ```python
-question = bot.filevoice("audio.wav")
-result = bot.ask(bot="sage", prompt=question)
+audio_file = os.path.abspath("audio.wav")
+prompt = bot.file_voice(audio_file)
+result = bot.ask(newchat=False, bot="Assistant", prompt=prompt)
 print("\nresponse:", result)
 ```
   
 <br />
 
-- clear cookies
+- Cookie control
 
 ```python
-status = bot.status()
+bot.clear_cookies()
+bot.load_cookies("path")
 ```
   
 <br />
 
 - configure classes and keys
 ```python
-bot.config(
-    website="https://poe.com/",
-    email_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'email')]",
-    email_area="input[class*=EmailInput]", 
-    code_area="input[class*=CodeInput",
-    go_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'go')]",
-    log_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'log')]",
-    talk_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'talk')]",
-    send_key="button[class*=SendButton]",
-    text_area="textarea[class*=TextArea]", 
-    clear_key="button[class*=ChatBreak]",
-    msg_element="ChatMessage_messageRow__7yIr2"
-)
+bot.config(self, website="https://poe.com/", #Base URL of POE.
+               email_form=".textInput_input__9YpqY", #CSS selector for the email input form.
+               go_btn=".Button_buttonBase__Bv9Vx.Button_primary__6UIn0",  #CSS selector for the 'Go' button.
+               code_form=".VerificationCodeInput_verificationCodeInput__RgX85", #CSS selector for the verification code input div.
+               login_btn=".Button_buttonBase__Bv9Vx.Button_primary__6UIn0",  #CSS selector for the login button.
+               query_input_form=".GrowingTextArea_textArea__ZWQbP", #CSS selector for the chat input div.
+               query_send_btn=".ChatMessageSendButton_sendButton__4ZyI4",  #CSS selector for the chat send button.
+               clear_key_btn=".ChatBreakButton_button__zyEye", #CSS selector for the clear chat button.
+               file_input_form=".ChatMessageFileInputButton_input__svNx4",  #CSS selector for the file input div.
+               file_input_box=".ChatMessageInputAttachments_container__AAxGu", #CSS selector for the file input box in chat.
+               voice_input_btn=".ChatMessageVoiceInputButton_button__NjXno",  #CSS selector for the voice input button.
+               msg_element=".ChatMessage_chatMessage__xkgHx", #CSS selector for the response message element div.
+            ):
 ```
-Here's the updated table:
-
-| KEY           | Value                                                     |
-|---------------|-----------------------------------------------------------|
-| website       | "https://poe.com/"                                        |
-| clear_key     | "button[class*=ChatBreak]"                                |
-| code_area     | "input[class*=VerificationCodeInput]"                     |
-| talk_key      | "//button[contains(translate(., 'a', 'A'), 'talk')]"       |
-| email_area    | "input[class*=EmailInput]"                                |
-| email_key     | "//button[contains(translate(., 'a', 'A'), 'email')]"      |
-| go_key        | "//button[contains(translate(., 'a', 'A'), 'go')]"         |
-| log_key       | "//button[contains(translate(., 'a', 'A'), 'log')]"        |
-| text_area     | "textarea[class*=TextArea]"                               |
-| send_key      | "button[class*=SendButton]"                               |
-| chat_element  | "div[class*=ChatMessagesView_infiniteScroll]"             |
-| msg_element   | "div[class*=ChatMessage_messageRow]"                       |
 <br />
 
 ## Contributing 
