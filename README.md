@@ -1,4 +1,8 @@
 # PoePT
+
+<img src="https://psc2.cf2.poecdn.net/assets/_next/static/media/poeFullWhiteMultibot.e2e2745a.svg" width="100" />
+
+
 PoePT is a simple Selenium Python package that provides automation for interacting with the Poe chatbots.
 Giving you access to multiple chatbots like:
 - Assistant
@@ -46,7 +50,7 @@ bot.login("your_email@example.com")
 result = bot.ask(newchat=False, bot="Assistant", prompt="hello")
 print(result)
 ```
-- the newchat parameter is used for either staying in the same chat for upcoming prompts or making new chat, but its ignored on the first question
+- the `newchat` parameter is used for either staying in the same chat for upcoming prompts or making new chat, but its ignored on the first question
 - When you're done with your session, be sure to close the connection:
 
 ```python
@@ -131,7 +135,7 @@ print("\nresponse:", result)
 <br />
 
 - Cookie control
-- default cookies path: ./saved_cookies/cookies.txt
+- default cookies path: `./saved_cookies/cookies.txt`
 
 ```python
 bot.clear_cookies()
