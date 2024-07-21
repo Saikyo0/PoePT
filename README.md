@@ -99,8 +99,19 @@ while True:
             break
 ```
 
-- Live voice Input
+<br />
 
+- Image Response
+
+```python
+prompt = "An Apple"
+result = bot.ask(bot="StableDiffusion3-2B", prompt=prompt, img_output=True)
+print(result)
+```
+
+<br />
+
+- Live voice Input
 ```python
 print("Listening...") 
 prompt = bot.live_voice(timeout=4)
@@ -108,8 +119,6 @@ print("Recording complete.")
 result = bot.ask(bot="Assistant", prompt=prompt)
 print("\nresponse:", result)
 ```
-  
-<br />
 
 - File voice Input
 ```python
@@ -122,7 +131,7 @@ print("\nresponse:", result)
 <br />
 
 - Cookie control
-- cookies path: ./saved_cookies/cookies.txt
+- default cookies path: ./saved_cookies/cookies.txt
 
 ```python
 bot.clear_cookies()
