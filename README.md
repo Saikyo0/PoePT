@@ -13,6 +13,10 @@ Giving you access to multiple chatbots like:
 ## Installation
 You can install PoePT using pip:
 ```
+py -m pip install poept -U
+```
+or
+```
 py -m pip install git+https://github.com/Saikyo0/poept@main
 ```  
 <br />
