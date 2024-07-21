@@ -13,7 +13,7 @@ Giving you access to multiple chatbots like:
 ## Installation
 You can install PoePT using pip:
 ```
-pip install poept
+py -m pip install git+https://github.com/Saikyo0/poept@main
 ```  
 <br />
 
@@ -36,12 +36,13 @@ from poept import PoePT
 bot = PoePT()
 bot.login("your_email@example.com") 
 ```
-- Once you're logged in, you can ask a question to the chatbot of your choice and retrieve the result:
+- Once you're logged in, you can ask a question to the chatbot of your choice and retrieve the result
 
 ```python
-result = bot.ask(bot="Assistant", prompt="hello")
+result = bot.ask(newchat=False, bot="Assistant", prompt="hello")
 print(result)
 ```
+- the newchat parameter is used for either staying in the same chat for upcoming prompts or making new chat, but its ignored on the first question
 - When you're done with your session, be sure to close the connection:
 
 ```python
