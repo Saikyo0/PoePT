@@ -1,125 +1,302 @@
-import pickle
+"""
+PoePT Python Library.
+#########################################
+
+Usage --> ``bot = PoePT()``
+
+Example -->
+
+```
+from poept import PoePT
+
+bot = PoePT(headless=True)
+bot.login("<your_email>")
+
+while (True):
+    prompt = input("> ")
+    response = bot.ask(bot="Assistant", prompt=prompt)
+    print(response)
+    if(prompt=="exit"): break
+
+bot.close()
+```
+
+# (The PoePT object needs to call login method)
+
+#########################################
+"""
+
 import os
-from selenium import webdriver
+import json
+import pyaudio
+import logging
+from seleniumbase import Driver, SB
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from .tools import find, click, enter, speech, record
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException 
+from selenium.webdriver.support import expected_conditions as EC
+from tools import speech, record
 
-letters = ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"]
-
+# Configure logging
+logging.basicConfig(filename='poebot.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class PoePT:
-    def __init__(self):
-        chrome_options = Options()
-        chrome_options.add_argument("--log-level=3")
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--disable-infobars")
-        chrome_options.add_argument("--disable-extensions")
-        chrome_options.add_argument("--disable-notifications")
-        chrome_options.add_argument("--disable-popup-blocking")
-        chrome_options.add_argument("--disable-logging")
-        chrome_service = webdriver.chrome.service.Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
-        self.stat = "false"
+    def __init__(self, 
+                 headless=False, #Whether to run the browser in headless mode
+        ):
+        """
+        Initialize the PoePT class with optional headless browser mode.
+        """
+        if not isinstance(headless, bool):
+            raise ValueError("headless must be a boolean value.")
+        
+        self.headless = headless
+        self.driver = Driver(headless2=headless)
+        self.free = True
+        self.current_bot = ""
         self.prompt = ""
         self.response = ""
         self.config()
 
-    def config(self, 
-            website="https://poe.com/",
-            email_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'email')]",
-            email_area="input[class*=EmailInput]", 
-            code_area="input[class*=CodeInput",
-            go_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'go')]",
-            log_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'log')]",
-            talk_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'talk')]",
-            send_key="button[class*=SendButton]",
-            text_area="textarea[class*=TextArea]", 
-            clear_key="button[class*=ChatBreak]",
-            msg_element="ChatMessage_messageRow__7yIr2"):
-        self.website = website
-        self.clear_key = clear_key
-        self.code_area = code_area
-        self.talk_key = talk_key
-        self.email_area = email_area
-        self.email_key = email_key
-        self.go_key = go_key
-        self.log_key = log_key
-        self.text_area = text_area
-        self.send_key = send_key
-        self.msg_element = msg_element
-
-    def getMessage(self, chat_id):
-        self.response = ""
-
-        while True:
-            try:
-                msg = find(self.driver, By.XPATH, f"(//div[@class='{chat_id}'])[last()]")
-                if msg.get_attribute("data-complete") == "false": break
-            except:
-                pass
-    
-        while True:
-            msg = find(self.driver, By.XPATH, f"(//div[@class='{chat_id}'])[last()]")
-            if msg.get_attribute("data-complete") == "true": break
-            self.response = msg.text
+    def clear_cookies(self):
+        """
+        Clear all cookies from the current driver session.
         
-        return self.response
-    
-    def clearcookies(self):
-        os.remove("cookies.pkl")
-        print("cookies cleared")
-    
-    def clearchat(self):
-        click(self.driver, By.CSS_SELECTOR, self.clear_key)
-        print("cookies cleared")
-
-    def login(self, email):
-        try:
-            self.driver.get(self.website)
+        Returns:
+        - bool: True if cookies were cleared successfully, False otherwise.
+        """
+        if self.driver:
             self.driver.delete_all_cookies()
-            cookies = pickle.load(open("cookies.pkl", "rb"))
+            print("Cookies cleared.")
+            return True
+        return False
+
+    def load_cookies(self):
+        """
+        Load cookies from a saved file and add them to the current driver session.
+        
+        Returns:
+        - bool: True if cookies were loaded successfully, False otherwise.
+        """
+        if self.driver:
+            with open("saved_cookies/cookies.txt", 'r') as f:
+                cookies = json.load(f)
             for cookie in cookies:
                 self.driver.add_cookie(cookie)
+            return True
+        return False
+
+    def config(self, website="https://poe.com/", #Base URL of POE.
+               email_form=".textInput_input__9YpqY", #CSS selector for the email input form.
+               go_btn=".Button_buttonBase__Bv9Vx.Button_primary__6UIn0",  #CSS selector for the 'Go' button.
+               code_form=".VerificationCodeInput_verificationCodeInput__RgX85", #CSS selector for the verification code input div.
+               login_btn=".Button_buttonBase__Bv9Vx.Button_primary__6UIn0",  #CSS selector for the login button.
+               query_input_form=".GrowingTextArea_textArea__ZWQbP", #CSS selector for the chat input div.
+               query_send_btn=".ChatMessageSendButton_sendButton__4ZyI4",  #CSS selector for the chat send button.
+               clear_key_btn=".ChatBreakButton_button__zyEye", #CSS selector for the clear chat button.
+               file_input_form=".ChatMessageFileInputButton_input__svNx4",  #CSS selector for the file input div.
+               file_input_box=".ChatMessageInputAttachments_container__AAxGu", #CSS selector for the file input box in chat.
+               voice_input_btn=".ChatMessageVoiceInputButton_button__NjXno",  #CSS selector for the voice input button.
+               msg_element=".ChatMessage_chatMessage__xkgHx", #CSS selector for the response message element div.
+            ):
+        """
+        Configure the web elements' selectors for interaction.
+        """
+        self.website = website
+        self.clear_key_btn = clear_key_btn
+        self.email_form = email_form
+        self.go_btn = go_btn
+        self.code_form = code_form
+        self.login_btn = login_btn
+        self.query_input_form = query_input_form
+        self.query_send_btn = query_send_btn
+        self.file_input_form = file_input_form
+        self.file_input_box = file_input_box
+        self.voice_input_btn = voice_input_btn
+        self.msg_element = msg_element
+
+    def login(self, 
+              email #Email address used for login.
+              ):
+        """
+        Log in to the website using the provided email. 
+        If cookies are saved, load them instead.
+
+        Returns:
+        - bool: True if login successful, False otherwise.
+        """
+        if not isinstance(email, str):
+            raise ValueError("email must be a string.")
+        
+        if os.path.exists("saved_cookies/cookies.txt"):
+            logging.info("Existing cookies found at ./saved_cookies/cookies.txt")
+            return True
+
+        try:
+            with SB(headless2=self.headless) as sb:
+                sb.open(self.website)
+                sb.type(self.email_form, email)
+                sb.click(self.go_btn)
+                print("Verification email sent...")
+                sb.assert_element(self.code_form)
+
+                code = input("Enter Code: ")
+                sb.type(self.code_form, code)
+                sb.click(self.login_btn)
+                sb.assert_element(self.query_input_form)
+                sb.save_cookies(name="cookies.txt")
+                return True
+            
+        except Exception as e:
+            logging.error("Login Error: WebDriver not initialized.")
+            logging.error(e)
+            return False
+
+    def ask(self, 
+            newchat=True, #Flag indicating whether to start a new chat session. ignored if its first question
+            bot="Assistant", #Username of the bot to interact with.
+            prompt="", #Query message to send to the bot.
+            attach_file="", #Absolute path to the file to attach (if any).
+            ):
+        """
+        Send a query to the chatbot and receive a response.
+        
+        Returns:
+        - str: Response from the chatbot.
+        """
+        if not isinstance(newchat, bool):
+            raise ValueError("newchat must be a boolean value.")
+        if not isinstance(bot, str):
+            raise ValueError("bot must be a string.")
+        if not isinstance(prompt, str):
+            raise ValueError("prompt must be a string.")
+        if not isinstance(attach_file, str):
+            raise ValueError("attach_file must be a string.")
+        
+        if not self.driver:
+            logging.error("WebDriver not initialized. Please login first.")
+            raise RuntimeError("WebDriver not initialized. Please login first.")
+
+        if newchat or self.current_bot != bot:
+            self.driver.execute_script(f"window.location.href = '{self.website}{bot}/';")
+            self.current_bot = bot
+            self.load_cookies()
             self.driver.refresh()
-
-        except (FileNotFoundError, pickle.UnpicklingError):
-            self.driver.get(self.website)    
-            self.driver.execute_script('window.scrollBy(0, 5);')
-            
-            click(self.driver, By.XPATH, self.email_key)
-            enter(self.driver, By.CSS_SELECTOR, self.email_area, email)
-            click(self.driver, By.XPATH, self.go_key)
-            
-            code = input("Enter code: ")
-            enter(self.driver, By.CSS_SELECTOR, self.code_area, code)
-            click(self.driver, By.XPATH, self.log_key)
-
-            pickle.dump(self.driver.get_cookies(), open("cookies.pkl", "wb"))
-
-    def ask(self, bot="sage", prompt="hello"):
-        self.stat = "wait"
-        self.prompt = prompt
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, self.query_input_form)))
         
-        self.driver.execute_script(f"window.location.href = '{self.website}{bot}/';")
+        try:
+            self.prompt = prompt
+            self.driver.find_element(By.CSS_SELECTOR, self.query_input_form).send_keys(prompt)
+            
+            if attach_file:
+                if not os.path.exists(attach_file):
+                    raise FileNotFoundError(f"The file {attach_file} does not exist.")
+                self.driver.find_element(By.CSS_SELECTOR, self.file_input_form).send_keys(attach_file)
+                WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, self.file_input_box)))
+
+            self.driver.find_element(By.CSS_SELECTOR, self.query_send_btn).click()
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, self.msg_element)))
+
+            msg = None
+            while True:
+                try:
+                    msg = self.driver.find_element(By.XPATH, f"(//div[@class='{self.msg_element[1:]}'])[last()]")
+                    if msg.get_attribute("data-complete") == "false": break
+                except (NoSuchElementException, StaleElementReferenceException):
+                    pass
+    
+            while True:
+                self.response = msg.text
+                msg = self.driver.find_element(By.XPATH, f"(//div[@class='{self.msg_element[1:]}'])[last()]")
+                if msg.get_attribute("data-complete") == "true": break
+            
+            self.response = '\n'.join(msg.text.split('\n')[2:]) #the first two lines contain POE and Bot name
+            self.free = True
+            return self.response
         
-        click(self.driver, By.CSS_SELECTOR, self.talk_key)
-        enter(self.driver, By.CSS_SELECTOR, self.text_area, prompt)
-        click(self.driver, By.CSS_SELECTOR, self.send_key)
+        except Exception as e:
+            logging.error(f"Exception occurred in ask method: {e}")
+            return ""
 
-        text = self.getMessage(self.msg_element)
-        self.stat = "ready"
-        return text
-    
-    def livevoice(self, timeout, fs=44100, micindex=2, file="audio.wav", chunk=1024):
-        prompt = speech(record(timeout, fs, micindex, file, chunk))
-        return prompt
-    
-    def filevoice(self, file="audio.wav"):
-        prompt = speech(file)
-        return prompt
+    def clear_chat(self):
+        """
+        Clear the current chat session.
+        
+        Returns:
+        - bool: True if chat cleared successfully, False otherwise.
+        """
+        if not self.driver:
+            raise RuntimeError("WebDriver not initialized. Please login first.")
+        try:
+            self.driver.find_element(By.CSS_SELECTOR, self.clear_key_btn).click()
+            print("Chat cleared.")
+            return True
+        
+        except Exception as e:
+            logging.error(e)
+            return
 
+    def live_voice(self,
+                   timeout, #Timeout in seconds for recording voice input.
+                   fs=44100, #Sampling frequency for recording.
+                   micindex=-1, #Index of the microphone to use. empty for default
+                   file="audio.wav", #File path to save the recorded audio.
+                   chunk=1024, #Size of audio chunks for processing.
+                ):
+        """
+        Record live voice input and convert it to text.
+        
+        Returns:
+        - str: Text transcription of the recorded voice input.
+        """
+        if not isinstance(timeout, int):
+            raise ValueError("timeout must be an integer.")
+        if not isinstance(timeout, int):
+            raise ValueError("timeout must be an integer.")
+        if not isinstance(fs, int):
+            raise ValueError("fs must be an integer.")
+        if not isinstance(micindex, int):
+            raise ValueError("micindex must be an integer.")
+        if not isinstance(file, str):
+            raise ValueError("file must be a string.")
+        if not isinstance(chunk, int):
+            raise ValueError("chunk must be an integer.")
+        
+        try:
+            p = pyaudio.PyAudio()
+            if (micindex == -1):
+                micindex = p.get_default_input_device_info()['index']
+
+            prompt = speech(record(timeout, fs, micindex, file, chunk))
+            return prompt
+        except Exception as e:
+            logging.error(e)
+            return
+
+    def file_voice(self, 
+                   file="audio.wav", #Absolute path to the audio file.
+                   ):
+        """
+        Convert a recorded audio file to text.
+        
+        Returns:
+        - str: Text transcription of the audio file.
+        """
+        if not isinstance(file, str):
+            raise ValueError("file must be a string.")
+        if not os.path.exists(file):
+            raise FileNotFoundError(f"The file {file} does not exist.")
+        
+        try:
+            prompt = speech(file)
+            return prompt
+        except Exception as e:
+            logging.error(e)
+            return
+    
     def close(self):
-        self.stat = "false"
-        self.driver.quit()
+        """
+        Close the browser session.
+        """
+        if self.driver:
+            self.driver.quit()
