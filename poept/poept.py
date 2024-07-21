@@ -35,7 +35,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException 
 from selenium.webdriver.support import expected_conditions as EC
-from .tools import speech, record
+from tools import speech, record
 
 # Configure logging
 logging.basicConfig(filename='poebot.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -52,7 +52,7 @@ class PoePT:
         
         self.headless = headless
         self.driver = Driver(headless2=headless)
-        self.free = True
+        self.status = "false"
         self.current_bot = ""
         self.prompt = ""
         self.response = ""
@@ -98,6 +98,7 @@ class PoePT:
                file_input_box=".ChatMessageInputAttachments_container__AAxGu", #CSS selector for the file input box in chat.
                voice_input_btn=".ChatMessageVoiceInputButton_button__NjXno",  #CSS selector for the voice input button.
                msg_element=".ChatMessage_chatMessage__xkgHx", #CSS selector for the response message element div.
+               msg_image="MarkdownImage_image__3dBzJ"#CSS selector for the response message picture element img.
             ):
         """
         Configure the web elements' selectors for interaction.
@@ -114,6 +115,7 @@ class PoePT:
         self.file_input_box = file_input_box
         self.voice_input_btn = voice_input_btn
         self.msg_element = msg_element
+        self.msg_image = msg_image
 
     def login(self, 
               email #Email address used for login.
@@ -130,6 +132,7 @@ class PoePT:
         
         if os.path.exists("saved_cookies/cookies.txt"):
             logging.info("Existing cookies found at ./saved_cookies/cookies.txt")
+            self.status = "ready"
             return True
 
         try:
@@ -145,6 +148,7 @@ class PoePT:
                 sb.click(self.login_btn)
                 sb.assert_element(self.query_input_form)
                 sb.save_cookies(name="cookies.txt")
+                self.status = "ready"
                 return True
             
         except Exception as e:
@@ -156,7 +160,8 @@ class PoePT:
             newchat=True, #Flag indicating whether to start a new chat session. ignored if its first question
             bot="Assistant", #Username of the bot to interact with.
             prompt="", #Query message to send to the bot.
-            attach_file="", #Absolute path to the file to attach (if any).
+            attach_file="", #Absolute path of a file to attach (if any).
+            img_output=False, #If the response should contain an image.
             ):
         """
         Send a query to the chatbot and receive a response.
@@ -177,8 +182,10 @@ class PoePT:
             logging.error("WebDriver not initialized. Please login first.")
             raise RuntimeError("WebDriver not initialized. Please login first.")
 
+        self.status = "wait"
+
         if newchat or self.current_bot != bot:
-            self.driver.execute_script(f"window.location.href = '{self.website}{bot}/';")
+            self.driver.get(f"{self.website}{bot}")
             self.current_bot = bot
             self.load_cookies()
             self.driver.refresh()
@@ -210,8 +217,11 @@ class PoePT:
                 msg = self.driver.find_element(By.XPATH, f"(//div[@class='{self.msg_element[1:]}'])[last()]")
                 if msg.get_attribute("data-complete") == "true": break
             
-            self.response = '\n'.join(msg.text.split('\n')[2:]) #the first two lines contain POE and Bot name
-            self.free = True
+            if img_output:
+                self.response = msg.find_element(By.CSS_SELECTOR, self.msg_image).get_attribute("src")
+
+            self.response += '\n'.join(msg.text.split('\n')[2:])
+            self.status = "ready"
             return self.response
         
         except Exception as e:
