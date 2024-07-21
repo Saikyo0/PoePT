@@ -35,7 +35,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException 
 from selenium.webdriver.support import expected_conditions as EC
-from tools import speech, record
+from .tools import speech, record
 
 # Configure logging
 logging.basicConfig(filename='poebot.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
