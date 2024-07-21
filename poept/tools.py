@@ -1,5 +1,5 @@
-import speech_recognition as sr
 import time
+import speech_recognition as sr
 
 
 def speech(file):
@@ -21,36 +21,3 @@ def record(timeout, fs, micindex, file, chunk):
     with open(file, "wb") as f:
         f.write(audio.get_wav_data())
     return file
-
-def find(driver, by, id):
-    try:
-        element = driver.find_element(by, id)
-        return element
-    except:
-        return False
-
-def click(driver, by, id):
-    count = 0
-    while count<5:
-        count+=1
-        try:
-            button = find(driver, by, id)
-            button.click()
-            return button
-        except:
-            time.sleep(0.1)
-    print(f"Unable to click {id}")
-    return False
-
-def enter(driver, by, id, data):
-    count = 0
-    while count<5:
-        count+=1
-        try:
-            area = find(driver, by, id)
-            area.send_keys(data)
-            return area
-        except:
-            time.sleep(0.1)
-    print(f"Unable to input value to {id}")
-    return False
