@@ -118,6 +118,7 @@ print("\nresponse:", result)
 <br />
 
 - Cookie control
+- cookies path: ./saved_cookies/cookies.txt
 
 ```python
 bot.clear_cookies()
