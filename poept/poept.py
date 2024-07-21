@@ -217,10 +217,10 @@ class PoePT:
                 msg = self.driver.find_element(By.XPATH, f"(//div[@class='{self.msg_element[1:]}'])[last()]")
                 if msg.get_attribute("data-complete") == "true": break
             
+            self.response = '\n'.join(msg.text.split('\n')[2:])
             if img_output:
-                self.response = msg.find_element(By.CSS_SELECTOR, self.msg_image).get_attribute("src")
+                self.response += msg.find_element(By.CSS_SELECTOR, self.msg_image).get_attribute("src")
 
-            self.response += '\n'.join(msg.text.split('\n')[2:])
             self.status = "ready"
             return self.response
         
