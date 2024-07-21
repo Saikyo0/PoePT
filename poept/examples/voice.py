@@ -19,7 +19,7 @@ audio_file = os.path.abspath("audio.wav")
 prompt = bot.file_voice(audio_file)
 if(prompt):
     print("> "+prompt)
-    result = bot.ask(newchat=False, bot="Assistant", prompt=prompt)
+    result = bot.ask(bot="Assistant", prompt=prompt)
     print(result)
 
 bot.close()
