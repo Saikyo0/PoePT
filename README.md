@@ -38,10 +38,11 @@ Here's an example of how to use PoePT to log in to the Poe chatbot and ask a que
 
 - create connection with bot
 - login is ***needed*** every time but will only ask for code if you havent logged in before
+- a `headless` attribute is used to hide window
 ```python
 from poept import PoePT
 
-bot = PoePT()
+bot = PoePT(headless=True)
 bot.login("your_email@example.com") 
 ```
 - Once you're logged in, you can ask a question to the chatbot of your choice and retrieve the result
