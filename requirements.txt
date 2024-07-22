@@ -3,3 +3,5 @@ seleniumbase
 SpeechRecognition
 selenium>=4.15.1
 setuptools>=70.0.0
+requests>=2.32.2 # not directly required, pinned by Snyk to avoid a vulnerability
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
