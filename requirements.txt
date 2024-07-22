@@ -1,3 +1,5 @@
 pyaudio
 seleniumbase
 SpeechRecognition
+selenium>=4.15.1
+setuptools>=70.0.0
