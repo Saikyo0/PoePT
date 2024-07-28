@@ -23,6 +23,7 @@ Giving you access to multiple chatbots like:
 ## Installation
 You can install PoePT using pip:
 ```
+brew install --cask chromedriver
 pip install git+https://github.com/dzianisv/poept
 ```
 <br />

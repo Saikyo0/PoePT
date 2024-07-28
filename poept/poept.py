@@ -61,7 +61,8 @@ class PoePT:
         chrome_options.add_argument("--disable-notifications")
         chrome_options.add_argument("--disable-popup-blocking")
         chrome_options.add_argument("--disable-logging")
-        chrome_service = webdriver.chrome.service.Service(ChromeDriverManager().install())
+        # chrome_service = webdriver.chrome.service.Service(ChromeDriverManager().install())
+        chrome_service = webdriver.chrome.service.Service()
         self.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
         self.stat = "false"
 
