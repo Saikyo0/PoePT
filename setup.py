@@ -10,9 +10,6 @@ setup(
     name='PoePT',
     version='0.3.3',
     description='Python package for interacting with the Quora POE chatbot',
-    author='Saikyo0',
-    author_email='mamaexus@gmail.com',
-    url='https://github.com/saikyo0/PoePT',
     packages=['poept', 'poept.langchain'],
     install_requires=requirements,
     classifiers=[

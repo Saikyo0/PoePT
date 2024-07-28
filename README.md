@@ -24,16 +24,22 @@ Giving you access to multiple chatbots like:
 You can install PoePT using pip:
 ```
 pip install git+https://github.com/dzianisv/poept
-```  
+```
 <br />
 
 
 ## Requirements:
-- a POE account (make one at poe.com) 
+- a POE account (make one at poe.com)
 - Chrome
 
-  
+
 <br />
+
+
+## Quick Start
+
+`python3 -m poept.server` | start http OpenAI compatible API
+`python3 -m poept.client` | start client with interactive prompt
 
 ## Usage
 Here's an example of how to use PoePT to log in to the Poe chatbot and ask a question:
@@ -44,7 +50,7 @@ Here's an example of how to use PoePT to log in to the Poe chatbot and ask a que
 from poept import PoePT
 
 bot = PoePT(email=os.environ.get("POE_EMAIL"))
- 
+
 ```
 - Once you're logged in, you can ask a question to the chatbot of your choice and retrieve the result:
 
@@ -81,7 +87,7 @@ status = bot.stat
 | false  | the bot isn't connected and cant answer  |
 | ready  | the bot is connected and ready to answer |
 | wait   | the bot is generating an answer          |
-  
+
 <br />
 
 - Get Live Updating Result
@@ -103,13 +109,13 @@ while bot.stat == "wait":
 - Live voice Input
 
 ```python
-print("Listening...") 
+print("Listening...")
 question = bot.livevoice(timeout=2)
 print("Recording complete.")
 result = bot.ask(bot="sage", prompt=question)
 print("\nresponse:", result)
 ```
-  
+
 <br />
 
 - File voice Input
@@ -118,7 +124,7 @@ question = bot.filevoice("audio.wav")
 result = bot.ask(bot="sage", prompt=question)
 print("\nresponse:", result)
 ```
-  
+
 <br />
 
 - clear cookies
@@ -126,7 +132,7 @@ print("\nresponse:", result)
 ```python
 status = bot.status()
 ```
-  
+
 <br />
 
 - configure classes and keys
@@ -134,13 +140,13 @@ status = bot.status()
 bot.config(
     website="https://poe.com/",
     email_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'email')]",
-    email_area="input[class*=EmailInput]", 
+    email_area="input[class*=EmailInput]",
     code_area="input[class*=CodeInput",
     go_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'go')]",
     log_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'log')]",
     talk_key=f"//button[contains(translate(., '{letters[0]}', '{letters[-1]}' ), 'talk')]",
     send_key="button[class*=SendButton]",
-    text_area="textarea[class*=TextArea]", 
+    text_area="textarea[class*=TextArea]",
     clear_key="button[class*=ChatBreak]",
     msg_element="ChatMessage_messageRow__7yIr2"
 )
@@ -163,7 +169,7 @@ Here's the updated table:
 | msg_element   | "div[class*=ChatMessage_messageRow]"                       |
 <br />
 
-## Contributing 
-If you encounter a bug open an issue on the GitHub repository. Pull requests are also welcome! 
+## Contributing
+If you encounter a bug open an issue on the GitHub repository. Pull requests are also welcome!
 
 <a href=https://github.com/saikyo0>saikyo0</a>
