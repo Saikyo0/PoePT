@@ -41,6 +41,7 @@ pip install git+https://github.com/dzianisv/poept
 
 `python3 -m poept.server` | start http OpenAI compatible API
 `python3 -m poept.client` | start client with interactive prompt
+`python3 -m poept.langchain.client` | connects to the OpenAI compatible API and opens an interactive prompt to talk
 
 ## Usage
 Here's an example of how to use PoePT to log in to the Poe chatbot and ask a question:
