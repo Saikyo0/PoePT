@@ -2,10 +2,14 @@ import os
 import argparse
 from langchain_openai import OpenAI
 
-def get_api_client(api_base=os.environ.get("API_BASE", "http://localhost:8080"), model='gpt4o'):
+def get_api_client(
+        api_base=os.environ.get("API_BASE", "http://localhost:8080"),
+        api_key=os.environ.get("API_KEY", "no"),
+        model='gpt4o'
+    ):
     return OpenAI(
             openai_api_base=api_base,
-            openai_api_key="no",
+            openai_api_key=api_key,
             model=model
     )
 

@@ -5,7 +5,7 @@ import selenium
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webelement import WebElement
@@ -15,6 +15,7 @@ from typing import Optional
 from .tools import click, enter, speech, record
 import logging
 import json
+import base64
 from urllib.parse import urlparse
 
 class BotNotFound(Exception):
@@ -51,11 +52,19 @@ class PoePT:
     cookies_file_path: str = os.path.expanduser("~/.cache/poept.cookies.json")
     alternative_cookies_file_path: str = os.path.realpath("./poept.cookies.json")
 
-    def __init__(self, cookies: Optional[str] = os.environ.get("POE_COOKIE"), email: Optional[str] = os.environ.get("POE_EMAIL"), headless: bool = os.environ.get("POE_HEADLESS", "true") == "true"):
+    def __init__(self,
+            cookies: Optional[str] = os.environ.get("POE_COOKIES"),
+            email: Optional[str] = os.environ.get("POE_EMAIL"),
+            headless: bool = os.environ.get("POE_HEADLESS", "true") == "true",
+        ):
         chrome_options = Options()
         if headless:
             chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-gpu")
+
         chrome_options.add_argument("--log-level=3")
+        chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-infobars")
         chrome_options.add_argument("--disable-extensions")
         chrome_options.add_argument("--disable-notifications")
@@ -69,7 +78,8 @@ class PoePT:
         self.cookies = None
 
         if cookies is not None:
-            self.cookies = json.loads(cookies)
+            self.cookies = json.loads(base64.decodebytes(cookies.encode('utf8')))
+            logger.info("Using passed cookies")
 
         if self.cookies is None:
             self.cookies = self.read_cookies()

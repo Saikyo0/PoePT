@@ -4,9 +4,12 @@ on:
   push:
     branches:
       - main
+      - dev
 
 jobs:
   build-and-deploy:
+    # https://docs.github.com/en/actions/deployment/about-deployments/deploying-with-github-actions
+    environment: production
     runs-on: ubuntu-latest
 
     steps:
@@ -29,27 +32,32 @@ jobs:
       with:
         context: .
         push: true
-        tags: ghcr.io/${{ github.repository }}/poe-server:latest
+        tags: ghcr.io/${{ github.repository }}/poe-server:${{ github.sha }}
 
     - name: Install Nomad CLI
       run: |
-        apt update -yq && apt install -yq curl gnupg gettext-base
-        curl -L https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-        export $( cat /etc/lsb-release | grep DISTRIB_CODENAME ); echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com ${DISTRIB_CODENAME} main" | tee /etc/apt/sources.list.d/hashicorp.list
-        apt update -yq && apt install -yq nomad
+        sudo apt update -yq &&sudo apt install -yq curl gnupg gettext-base
+        curl -L https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+        export $( cat /etc/lsb-release | grep DISTRIB_CODENAME ); echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com ${DISTRIB_CODENAME} main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+        sudo apt update -yq && sudo apt install -yq nomad
 
     - name: Deploy to Nomad
       run: |
         mkdir -p .secrets
-        base64 -d << "{{ secrets.NOMAD_CACERT }}" > .secrets/nomad-ca.pem
-        base64 -d << "{{ secrets.NOMAD_CLIENT_CERT }}" > .secrets/nomad-client.pem
-        base64 -d << "{{ secrets.NOMAD_CLIENT_KEY }}" > .secrets/nomad-client-key.pem
+        echo "${{ secrets.NOMAD_CACERT }}" > .secrets/nomad-ca.pem
+        echo "${{ secrets.NOMAD_CLIENT_CERT }}" > .secrets/nomad-client.pem
+        echo "${{ secrets.NOMAD_CLIENT_KEY }}" > .secrets/nomad-client-key.pem
 
         envsubst < server.nomad > server.hcl
-        nomad job run server.hcl
+        nomad job run \
+          -address="${{ secrets.NOMAD_ADDR }}" \
+          -ca-cert=".secrets/nomad-ca.pem" \
+          -client-cert=".secrets/nomad-client.pem" \
+          -client-key=".secrets/nomad-client-key.pem" \
+          server.hcl
       env:
-        NOMAD_CACERT: .secrets/nomad-ca.pem
-        NOMAD_CLIENT_CERT: .secrets/nomad-client.pem
-        NOMAD_CLIENT_KEY: .secrets/nomad-client-key.pem
-        NOMAD_ADDR: ${{ secrets.NOMAD_ADDR }}
+        NOMAD_PORT_http: ${NOMAD_PORT_http}
+        NOMAD_TLS_SERVER_NAME: 127.0.0.1
         POE_COOKIES: ${{ secrets.POE_COOKIES }}
+        POE_AUTH_TOKENS: ${{ secrets.POE_AUTH_TOKENS }}
+        IMAGE_TAG: ghcr.io/${{ github.repository }}/poe-server:${{ github.sha }}
