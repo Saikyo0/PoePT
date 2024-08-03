@@ -41,7 +41,7 @@ stop_button_selector="button[class*=ChatStopMessageButton]"
 button_css_selector = "button[class*=SendButton]"
 
 
-def to_markdown(element: WebElement) -> str;
+def to_markdown(element: WebElement) -> str:
     html = element.get_attribute('innerHTML')
     text =  markdownify.markdownify(html, escape_underscores=False)
     text = re.sub(r'\[\d+\]', '', text)
