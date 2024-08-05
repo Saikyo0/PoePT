@@ -43,7 +43,7 @@ button_css_selector = "button[class*=SendButton]"
 
 def to_markdown(element: WebElement) -> str:
     html = element.get_attribute('innerHTML')
-    text =  markdownify.markdownify(html, escape_underscores=False)
+    text =  markdownify.markdownify(html, escape_underscores=False, escape_asterisks=False)
     text = re.sub(r'\[\d+\]', '', text)
     text = re.sub(r'\s+([\.,!?])', r'\1', text)
     return text
